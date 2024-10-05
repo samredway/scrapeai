@@ -90,6 +90,7 @@ func newGptRequest(prompt string, page string) gptRequest {
 }
 
 // TODO return a GPT result object with properly parsed data
+// TODO handle size limits (chunking strategy)
 func generateText(config *gptRequest) (string, error) {
 	body, err := json.Marshal(config)
 	if err != nil {
