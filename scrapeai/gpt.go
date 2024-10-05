@@ -16,7 +16,10 @@ const (
 	openaiApiUrl         = "https://api.openai.com/v1/chat/completions"
 	gptResponseSeparator = ";;;"
 	prompt               = `
-	You are a helpful assistant that can scrape the web.
+	You are an important part of a web scraping tool. You 
+	collect information from the web and return it in a machine
+	readable format.
+
 	You are given a URL and a prompt.
 	You need to scrape the web page and return the text as
 	outlined in the prompt.
@@ -24,6 +27,11 @@ const (
 	There may be multiple instances of the text you need to
 	extract. If so, please return all of them. Please return
 	them using the following separator: ';;;'.
+
+	Only return the requested data, do not comment or return 
+	any other text.
+
+	Also use the specified separator to separate the data.
 
 	An example prompt is:
 	"Extract the job titles from the page."
@@ -56,10 +64,10 @@ func init() {
 }
 
 type gptRequest struct {
-	Model       string    `json:"model"`
-	MaxTokens   int       `json:"max_tokens"`
-	Temperature float64   `json:"temperature"`
-	Seed        int       `json:"seed"`
+	Model       string       `json:"model"`
+	MaxTokens   int          `json:"max_tokens"`
+	Temperature float64      `json:"temperature"`
+	Seed        int          `json:"seed"`
 	Messages    []gptMessage `json:"messages"`
 }
 

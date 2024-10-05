@@ -1,3 +1,4 @@
+// Package scrapeai contains the Public interface for the scrapeai package
 package scrapeai
 
 import (
@@ -21,7 +22,19 @@ func Scrape(req ScrapeAiRequest) (ScrapeAiResult, error) {
 	if err != nil {
 		return ScrapeAiResult{}, err
 	}
-	gptRequest := newGptRequest(req.Prompt, page)
+	goqueryDoc, err := scraping.GoQueryDocFromBody(page)
+	if err != nil {
+		return ScrapeAiResult{}, err
+	}
+	strippedPage, err := scraping.StripNonTextTags(goqueryDoc)
+	if err != nil {
+		return ScrapeAiResult{}, err
+	}
+	pageText, err := scraping.GetDocumentHTML(strippedPage)
+	if err != nil {
+		return ScrapeAiResult{}, err
+	}
+	gptRequest := newGptRequest(req.Prompt, pageText)
 	response, err := generateText(&gptRequest)
 	if err != nil {
 		return ScrapeAiResult{}, err
