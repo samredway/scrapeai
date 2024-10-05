@@ -58,23 +58,17 @@ func GoQueryDocFromBody(body string) (*goquery.Document, error) {
 // StripNonTextTags removes elements that don't contain text from a copy of the given goquery document
 // Returns a new document with non-text elements removed
 func StripNonTextTags(doc *goquery.Document) (*goquery.Document, error) {
-	// Create a deep copy of the original document
 	docCopy := goquery.CloneDocument(doc)
-
-	// Remove common non-text elements
 	docCopy.Find("script, style, link, meta").Remove()
-
-	// Remove elements without text content
 	docCopy.Find("*").Each(func(i int, s *goquery.Selection) {
 		if strings.TrimSpace(s.Text()) == "" {
 			s.Remove()
 		}
 	})
-
 	return docCopy, nil
 }
 
-// Helper function to get the HTML string from a document
+// Helper function to get the HTML string from a GoQuery document
 func GetDocumentHTML(doc *goquery.Document) (string, error) {
 	html, err := doc.Html()
 	if err != nil {
