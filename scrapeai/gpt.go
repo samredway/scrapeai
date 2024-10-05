@@ -11,8 +11,6 @@ import (
 
 const openaiApiUrl = "https://api.openai.com/v1/chat/completions"
 
-// Move the long prompt to a separate file or consider using a template
-
 var openaiApiKey string
 
 func init() {
