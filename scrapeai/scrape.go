@@ -26,5 +26,5 @@ func Scrape(req ScrapeAiRequest) (ScrapeAiResult, error) {
 	if err != nil {
 		return ScrapeAiResult{}, err
 	}
-	return ScrapeAiResult{Url: req.Url, Text: strings.Split(response, ";;;")}, nil
+	return ScrapeAiResult{Url: req.Url, Text: strings.Split(response, gptResponseSeparator)}, nil
 }

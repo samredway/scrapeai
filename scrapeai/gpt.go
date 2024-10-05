@@ -13,8 +13,9 @@ import (
 )
 
 const (
-	openaiApiUrl = "https://api.openai.com/v1/chat/completions"
-	prompt       = `
+	openaiApiUrl         = "https://api.openai.com/v1/chat/completions"
+	gptResponseSeparator = ";;;"
+	prompt               = `
 	You are a helpful assistant that can scrape the web.
 	You are given a URL and a prompt.
 	You need to scrape the web page and return the text as
@@ -59,10 +60,10 @@ type gptRequest struct {
 	MaxTokens   int       `json:"max_tokens"`
 	Temperature float64   `json:"temperature"`
 	Seed        int       `json:"seed"`
-	Messages    []message `json:"messages"`
+	Messages    []gptMessage `json:"messages"`
 }
 
-type message struct {
+type gptMessage struct {
 	Role    string `json:"role"`
 	Content string `json:"content"`
 }
@@ -76,7 +77,7 @@ var defaultConfig = gptRequest{
 
 func newGptRequest(prompt string, page string) gptRequest {
 	config := defaultConfig
-	config.Messages = []message{{Role: "user", Content: fmt.Sprintf(prompt, prompt, page)}}
+	config.Messages = []gptMessage{{Role: "user", Content: fmt.Sprintf(prompt, prompt, page)}}
 	return config
 }
 
