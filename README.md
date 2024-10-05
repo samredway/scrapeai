@@ -4,6 +4,8 @@ ScrapeAI is a Go library that integrates web scraping capabilities with OpenAI's
 
 The aim is to provide a more flexible and robust means of extracting web content than can be achieved with traditional web scraping tools. By leveraging AI, ScrapeAI can handle complex layouts, dynamic content, and context-dependent information more effectively.
 
+I have written this library initially to help me reliably scrape data from my own personal projects, however pulled it out into a standalone library in case it might be useful or interesting to others. I have thoughts (see the Future Work section) on how to take this library further and plan to put a bit more time into it when I have some spare time.
+
 ## Features
 
 - Intelligent web scraping powered by GPT models
