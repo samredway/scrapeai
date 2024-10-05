@@ -55,11 +55,11 @@ func init() {
 }
 
 type gptRequest struct {
-	model       string    `json:"model"`
-	maxTokens   int       `json:"max_tokens"`
-	temperature float64   `json:"temperature"`
-	seed        int       `json:"seed"`
-	messages    []message `json:"messages"`
+	Model       string    `json:"model"`
+	MaxTokens   int       `json:"max_tokens"`
+	Temperature float64   `json:"temperature"`
+	Seed        int       `json:"seed"`
+	Messages    []message `json:"messages"`
 }
 
 type message struct {
@@ -68,15 +68,15 @@ type message struct {
 }
 
 var defaultConfig = gptRequest{
-	model:       "gpt-4o-mini",
-	maxTokens:   1024,
-	temperature: 0.0,
-	seed:        42,
+	Model:       "gpt-4o-mini",
+	MaxTokens:   1024,
+	Temperature: 0.0,
+	Seed:        42,
 }
 
 func newGptRequest(prompt string, page string) gptRequest {
 	config := defaultConfig
-	config.messages = []message{{Role: "user", Content: fmt.Sprintf(prompt, prompt, page)}}
+	config.Messages = []message{{Role: "user", Content: fmt.Sprintf(prompt, prompt, page)}}
 	return config
 }
 
