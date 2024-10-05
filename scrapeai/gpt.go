@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -12,48 +11,14 @@ import (
 	"github.com/joho/godotenv"
 )
 
-const (
-	openaiApiUrl         = "https://api.openai.com/v1/chat/completions"
-	gptResponseSeparator = ";;;"
-	prompt               = `
-	You are an important part of a web scraping tool. You 
-	collect information from the web and return it in a machine
-	readable format.
+const openaiApiUrl = "https://api.openai.com/v1/chat/completions"
 
-	You are given a URL and a prompt.
-	You need to scrape the web page and return the text as
-	outlined in the prompt.
-
-	There may be multiple instances of the text you need to
-	extract. If so, please return all of them. Please return
-	them using the following separator: ';;;'.
-
-	Only return the requested data, do not comment or return 
-	any other text.
-
-	Also use the specified separator to separate the data.
-
-	An example prompt is:
-	"Extract the job titles from the page."
-
-	An example response is:
-	"Software Engineer;;;Product Manager;;;"
-
-	Here is your prompt:
-	%s
-
-	The following text is the raw html of the page you must scrape:
-	%s
-
-	Please return the text as outlined in the prompt.
-	`
-)
+// Move the long prompt to a separate file or consider using a template
 
 var openaiApiKey string
 
 func init() {
-	err := godotenv.Load()
-	if err != nil {
+	if err := godotenv.Load(); err != nil {
 		log.Fatal("Error loading .env file")
 	}
 
@@ -63,43 +28,114 @@ func init() {
 	}
 }
 
-type gptRequest struct {
-	Model       string       `json:"model"`
-	MaxTokens   int          `json:"max_tokens"`
-	Temperature float64      `json:"temperature"`
-	Seed        int          `json:"seed"`
-	Messages    []gptMessage `json:"messages"`
+type GptRequest struct {
+	Model          string         `json:"model"`
+	Temperature    float64        `json:"temperature"`
+	Seed           int            `json:"seed"`
+	Messages       []GptMessage   `json:"messages"`
+	ResponseFormat ResponseFormat `json:"response_format"`
 }
 
-type gptMessage struct {
+type GptMessage struct {
 	Role    string `json:"role"`
 	Content string `json:"content"`
 }
 
-var defaultConfig = gptRequest{
-	Model:       "gpt-4o-mini",
-	MaxTokens:   1024,
-	Temperature: 0.0,
-	Seed:        42,
+type ResponseFormat struct {
+	Type       string     `json:"type"`
+	JSONSchema JSONSchema `json:"json_schema"`
 }
 
-func newGptRequest(prompt string, page string) gptRequest {
+type JSONSchema struct {
+	Name   string       `json:"name"`
+	Strict bool         `json:"strict"`
+	Schema SchemaObject `json:"schema"`
+}
+
+type SchemaObject struct {
+	Type                 string             `json:"type"`
+	Properties           SchemaDataProperty `json:"properties"`
+	AdditionalProperties bool               `json:"additionalProperties"`
+	Required             []string           `json:"required"`
+}
+
+type SchemaDataProperty struct {
+	Data SchemaDataArray `json:"data"`
+}
+
+type SchemaDataArray struct {
+	Type  string `json:"type"`
+	Items struct {
+		Type string `json:"type"`
+	} `json:"items"`
+}
+
+type GptResponse struct {
+	ID      string    `json:"id"`
+	Object  string    `json:"object"`
+	Created int64     `json:"created"`
+	Model   string    `json:"model"`
+	Choices []Choice  `json:"choices"`
+	Usage   UsageInfo `json:"usage"`
+}
+
+type Choice struct {
+	Index        int        `json:"index"`
+	Message      GptMessage `json:"message"`
+	FinishReason string     `json:"finish_reason"`
+}
+
+type UsageInfo struct {
+	PromptTokens     int `json:"prompt_tokens"`
+	CompletionTokens int `json:"completion_tokens"`
+	TotalTokens      int `json:"total_tokens"`
+}
+
+var defaultConfig = GptRequest{
+	Model:       "gpt-4o-mini",
+	Temperature: 0.0,
+	Seed:        42,
+	ResponseFormat: ResponseFormat{
+		Type: "json_schema",
+		JSONSchema: JSONSchema{
+			Name:   "scrape_result",
+			Strict: true,
+			Schema: SchemaObject{
+				Type: "object",
+				Properties: SchemaDataProperty{
+					Data: SchemaDataArray{
+						Type: "array",
+						Items: struct {
+							Type string `json:"type"`
+						}{
+							Type: "string",
+						},
+					},
+				},
+				AdditionalProperties: false,
+				Required:             []string{"data"},
+			},
+		},
+	},
+}
+
+func newGptRequest(prompt, page string) GptRequest {
 	config := defaultConfig
-	config.Messages = []gptMessage{{Role: "user", Content: fmt.Sprintf(prompt, prompt, page)}}
+	config.Messages = []GptMessage{{Role: "user", Content: fmt.Sprintf(prompt, prompt, page)}}
 	return config
 }
 
-// TODO return a GPT result object with properly parsed data
-// TODO handle size limits (chunking strategy)
-func generateText(config *gptRequest) (string, error) {
+// TODO: Return a GPT result object with properly parsed data
+// TODO: Handle size limits (chunking strategy)
+func sendGPTRequest(config *GptRequest) (*GptResponse, error) {
 	body, err := json.Marshal(config)
 	if err != nil {
-		return "", err
+		return nil, fmt.Errorf("error marshaling request: %w", err)
 	}
 
 	req, err := http.NewRequest("POST", openaiApiUrl, bytes.NewBuffer(body))
 	if err != nil {
-		return "", err
+		return nil, fmt.Errorf("error creating request: %w", err)
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -108,14 +144,18 @@ func generateText(config *gptRequest) (string, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", err
+		return nil, fmt.Errorf("error sending request: %w", err)
 	}
 	defer resp.Body.Close()
 
-	responseBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("API request failed with status code: %d", resp.StatusCode)
 	}
 
-	return string(responseBody), nil
+	var gptResponse GptResponse
+	if err := json.NewDecoder(resp.Body).Decode(&gptResponse); err != nil {
+		return nil, fmt.Errorf("error decoding response: %w", err)
+	}
+
+	return &gptResponse, nil
 }

@@ -29,7 +29,7 @@ func Fetch(url string) (string, error) {
 
 // Get body from chromedp headless browswer to collect dynamically rendered
 // content
-func FetchFromChomedp(url string) (string, error) {
+func FetchFromChromedp(url string) (string, error) {
 	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
 
