@@ -1,4 +1,5 @@
-package scrapeai
+// Package scraping contains utility functions for web scraping
+package scraping
 
 import (
 	"context"

@@ -2,6 +2,8 @@ package scrapeai
 
 import (
 	"strings"
+
+	"github.com/samredway/scrapeai/scraping"
 )
 
 type ScrapeAiRequest struct {
@@ -15,7 +17,7 @@ type ScrapeAiResult struct {
 }
 
 func Scrape(req ScrapeAiRequest) (ScrapeAiResult, error) {
-	page, err := FetchFromChomedp(req.Url)
+	page, err := scraping.FetchFromChomedp(req.Url)
 	if err != nil {
 		return ScrapeAiResult{}, err
 	}
