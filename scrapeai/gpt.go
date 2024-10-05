@@ -7,8 +7,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-
-	"github.com/joho/godotenv"
 )
 
 const openaiApiUrl = "https://api.openai.com/v1/chat/completions"
@@ -18,10 +16,6 @@ const openaiApiUrl = "https://api.openai.com/v1/chat/completions"
 var openaiApiKey string
 
 func init() {
-	if err := godotenv.Load(); err != nil {
-		log.Fatal("Error loading .env file")
-	}
-
 	openaiApiKey = os.Getenv("OPENAI_API_KEY")
 	if openaiApiKey == "" {
 		log.Fatal("OPENAI_API_KEY is not set in the environment")
