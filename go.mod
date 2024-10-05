@@ -5,7 +5,6 @@ go 1.23.0
 require (
 	github.com/PuerkitoBio/goquery v1.10.0
 	github.com/chromedp/chromedp v0.10.0
-	github.com/joho/godotenv v1.5.1
 )
 
 require (
