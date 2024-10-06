@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/samredway/scrapeai/scrapeai"
+	"github.com/samredway/scrapeai/scraping"
 )
 
 func TestScrapeIntegration(t *testing.T) {
@@ -33,8 +34,9 @@ func TestScrapeIntegration(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result, err := scrapeai.Scrape(scrapeai.ScrapeAiRequest{
-				Url:    url,
-				Prompt: tt.prompt,
+				Url:       url,
+				Prompt:    tt.prompt,
+				FetchFunc: scraping.Fetch,
 			})
 			if err != nil {
 				t.Fatalf("Error scraping with AI: %v", err)

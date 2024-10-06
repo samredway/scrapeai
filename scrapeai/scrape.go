@@ -10,9 +10,13 @@ import (
 
 // ScrapeAiRequest represents the input for a scraping operation.
 type ScrapeAiRequest struct {
-	Url    string
-	Prompt string
+	Url       string
+	Prompt    string
+	FetchFunc FetchFunc // Optional custom fetch function
 }
+
+// FetchFunc is a function type for fetching a web page
+type FetchFunc func(url string) (string, error)
 
 // ScrapeAiResult contains the results of a scraping operation.
 type ScrapeAiResult struct {
@@ -22,10 +26,16 @@ type ScrapeAiResult struct {
 
 // Scrape performs a web scraping operation with AI assistance.
 func Scrape(req ScrapeAiRequest) (*ScrapeAiResult, error) {
-	page, err := scraping.FetchFromChromedp(req.Url)
+	fetchFunc := req.FetchFunc
+	if fetchFunc == nil {
+		fetchFunc = scraping.FetchFromChromedp // Default fetch function
+	}
+
+	page, err := fetchFunc(req.Url)
 	if err != nil {
 		return nil, fmt.Errorf("fetching page: %w", err)
 	}
+
 	goqueryDoc, err := scraping.GoQueryDocFromBody(page)
 	if err != nil {
 		return nil, fmt.Errorf("creating goquery doc: %w", err)
