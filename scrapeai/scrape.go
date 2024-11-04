@@ -1,4 +1,5 @@
 // Package scrapeai provides a public interface for web scraping with AI assistance.
+// Version: v0.1.0
 package scrapeai
 
 import (
@@ -57,7 +58,7 @@ func Scrape(req ScrapeAiRequest) (*ScrapeAiResult, error) {
 
 	return &ScrapeAiResult{
 		Url:     req.Url,
-		Results: results,
+		Results: results
 	}, nil
 }
 
