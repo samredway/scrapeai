@@ -4,21 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 )
 
 const openaiApiUrl = "https://api.openai.com/v1/chat/completions"
-
-var openaiApiKey string
-
-func init() {
-	openaiApiKey = os.Getenv("OPENAI_API_KEY")
-	if openaiApiKey == "" {
-		log.Fatal("OPENAI_API_KEY is not set in the environment")
-	}
-}
 
 type GptRequest struct {
 	Model          string         `json:"model"`
@@ -120,6 +110,11 @@ func newGptRequest(prompt, page string) GptRequest {
 // TODO: Return a GPT result object with properly parsed data
 // TODO: Handle size limits (chunking strategy)
 func sendGPTRequest(config *GptRequest) (*GptResponse, error) {
+	openaiApiKey := os.Getenv("OPENAI_API_KEY")
+	if openaiApiKey == "" {
+		return nil, fmt.Errorf("OPENAI_API_KEY is not set in the environment")
+	}
+
 	body, err := json.Marshal(config)
 	if err != nil {
 		return nil, fmt.Errorf("error marshaling request: %w", err)

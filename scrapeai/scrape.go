@@ -8,15 +8,16 @@ import (
 	"github.com/samredway/scrapeai/scraping"
 )
 
+// FetchFunc is a function type for fetching a web page
+// See scraping/utils/FetchFromChromedp for the default implementation
+type FetchFunc func(url string) (string, error)
+
 // ScrapeAiRequest represents the input for a scraping operation.
 type ScrapeAiRequest struct {
 	Url       string
 	Prompt    string
 	FetchFunc FetchFunc // Optional custom fetch function
 }
-
-// FetchFunc is a function type for fetching a web page
-type FetchFunc func(url string) (string, error)
 
 // ScrapeAiResult contains the results of a scraping operation.
 type ScrapeAiResult struct {
