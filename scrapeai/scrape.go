@@ -9,6 +9,9 @@ import (
 	"github.com/samredway/scrapeai/scraping"
 )
 
+// Version is the current version of the scrapeai package
+const Version = "v0.1.0"
+
 // FetchFunc is a function type for fetching a web page
 // See scraping/utils/FetchFromChromedp for the default implementation
 type FetchFunc func(url string) (string, error)
