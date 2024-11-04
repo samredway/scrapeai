@@ -1,5 +1,5 @@
 // Package scrapeai provides a public interface for web scraping with AI assistance.
-// Version: v0.1.0
+// Version: v0.1.1
 package scrapeai
 
 import (
@@ -9,7 +9,7 @@ import (
 	"github.com/samredway/scrapeai/scraping"
 )
 
-const Version = "v0.1.0"
+const Version = "v0.1.1"
 
 // FetchFunc is a function type for fetching a web page
 // See scraping/utils/FetchFromChromedp for the default implementation
