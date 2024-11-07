@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/samredway/scrapeai/gpt"
 	"github.com/samredway/scrapeai/scraping"
 )
 
@@ -65,8 +66,8 @@ func Scrape(req ScrapeAiRequest) (*ScrapeAiResult, error) {
 }
 
 func processWithGPT(prompt, pageText string) ([]string, error) {
-	gptRequest := newGptRequest(prompt, pageText)
-	response, err := sendGPTRequest(&gptRequest)
+	gptRequest := gpt.NewGptRequest(prompt, pageText)
+	response, err := gpt.SendGPTRequest(&gptRequest)
 	if err != nil {
 		return nil, err
 	}
