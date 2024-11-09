@@ -1,6 +1,9 @@
 package gpt
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 type GptRequest struct {
 	Model          string         `json:"model"`
@@ -45,4 +48,9 @@ func NewGptRequest(prompt, page string) *GptRequest {
 	config := defaultConfig
 	config.Messages = []GptMessage{{Role: "user", Content: fmt.Sprintf(prompt, prompt, page)}}
 	return &config
+}
+
+func (r *GptRequest) SetSchema(schema string) {
+	schemaBytes := json.RawMessage(schema)
+	r.ResponseFormat.JSONSchema.Schema = NewSchemaObject(schemaBytes)
 }

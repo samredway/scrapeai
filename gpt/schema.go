@@ -1,5 +1,7 @@
 package gpt
 
+import "encoding/json"
+
 // SchemaObject is the definition of the return object for GPT requests
 // It is used to define the structure of the response from GPT
 type SchemaObject struct {
@@ -10,32 +12,14 @@ type SchemaObject struct {
 }
 
 type SchemaDataProperty struct {
-	Data SchemaDataArray `json:"data"`
-}
-
-type SchemaDataArray struct {
-	Type  string `json:"type"`
-	Items struct {
-		Type string `json:"type"`
-	} `json:"items"`
+	Data json.RawMessage `json:"data"`
 }
 
 // NewSchemaObject allows users to define a custom schema for the response
-func NewSchemaObject() *SchemaObject {
-	// TODO: allow this to be a customer object and move a way of creating
-	// this default schema into the DefaultSchema function
+func NewSchemaObject(schema json.RawMessage) *SchemaObject {
 	return &SchemaObject{
-		Type: "object",
-		Properties: SchemaDataProperty{
-			Data: SchemaDataArray{
-				Type: "array",
-				Items: struct {
-					Type string `json:"type"`
-				}{
-					Type: "string",
-				},
-			},
-		},
+		Type:                 "object",
+		Properties:           SchemaDataProperty{Data: schema},
 		AdditionalProperties: false,
 		Required:             []string{"data"},
 	}
@@ -43,5 +27,6 @@ func NewSchemaObject() *SchemaObject {
 
 // DefaultSchema returns the default schema configuration which is a array of strings
 func DefaultSchema() *SchemaObject {
-	return NewSchemaObject()
+	defaultSchema := json.RawMessage(`{"type": "array", "items": {"type": "string"}}`)
+	return NewSchemaObject(defaultSchema)
 }
