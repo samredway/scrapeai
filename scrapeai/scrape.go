@@ -18,9 +18,11 @@ type FetchFunc func(url string) (string, error)
 
 // ScrapeAiRequest represents the input for a scraping operation.
 type ScrapeAiRequest struct {
-	Url       string
-	Prompt    string
+	Url    string
+	Prompt string
+	// TODO: maybe make these use the functional options pattern
 	FetchFunc FetchFunc // Optional custom fetch function
+	// Schema    *gpt.SchemaObject // Optional custom schema for the response
 }
 
 // ScrapeAiResult contains the results of a scraping operation.
@@ -67,7 +69,7 @@ func Scrape(req ScrapeAiRequest) (*ScrapeAiResult, error) {
 
 func processWithGPT(prompt, pageText string) ([]string, error) {
 	gptRequest := gpt.NewGptRequest(prompt, pageText)
-	response, err := gpt.SendGPTRequest(&gptRequest)
+	response, err := gpt.SendGptRequest(gptRequest)
 	if err != nil {
 		return nil, err
 	}
