@@ -50,6 +50,7 @@ func NewGptRequest(prompt, page string) *GptRequest {
 	return &config
 }
 
+// SetSchema sets the schema for the response from GPT
 func (r *GptRequest) SetSchema(schema string) {
 	schemaBytes := json.RawMessage(schema)
 	r.ResponseFormat.JSONSchema.Schema = NewSchemaObject(schemaBytes)
