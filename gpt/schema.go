@@ -2,6 +2,8 @@ package gpt
 
 import "encoding/json"
 
+const DefaultSchemaTemplate = `{"type": "array", "items": {"type": "string"}}`
+
 // SchemaObject is the definition of the return object for GPT requests
 // It is used to define the structure of the response from GPT
 type SchemaObject struct {
@@ -27,6 +29,6 @@ func NewSchemaObject(schema json.RawMessage) *SchemaObject {
 
 // DefaultSchema returns the default schema configuration which is a array of strings
 func DefaultSchema() *SchemaObject {
-	defaultSchema := json.RawMessage(`{"type": "array", "items": {"type": "string"}}`)
+	defaultSchema := json.RawMessage(DefaultSchemaTemplate)
 	return NewSchemaObject(defaultSchema)
 }
