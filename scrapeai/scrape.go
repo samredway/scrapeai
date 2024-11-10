@@ -61,8 +61,10 @@ func processWithGPT(req *ScrapeAiRequest, pageText string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-    
-	// TODO this needs to match the schema that is passed in
+
+	// this will return a slice of the raw response strings that have been returned
+	// the caller will need to unmarshal the response to match the schema that is
+	// passed in
 	var jsonResponse struct {
 		Data []string `json:"data"`
 	}

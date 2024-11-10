@@ -78,26 +78,46 @@ go run examples/basic_usage.go
 
 #### Custom Schema Construction
 
-While ScrapeAI provide a default schema which returns a list of strings, which will work for many use cases, you can define custom schemas for specific data extraction needs. However, working with custom schemas requires careful attention to OpenAI's JSON Schema requirements and can be tricky to get right. We strongly recommend reviewing the official documentation before implementing custom schemas.
+While ScrapeAI provides a default schema which returns a list of strings, you can define custom schemas for specific data extraction needs. However, working with custom schemas requires careful attention to OpenAI's JSON Schema requirements and can be tricky to get right. We strongly recommend reviewing the official documentation before implementing custom schemas.
 
-If you do need a custom schema, here's a basic example:
+**Important**: All custom schemas must include a top-level `data` array field. This is because ScrapeAI always returns responses in a standardized format where results are contained within a `data` array. Your schema and structs must reflect this structure.
+
+Here's a basic example:
 
 ```json
 {
-    "type": "array",
-    "items": {
-        "type": "object",
-        "properties": {
-            "headline": {"type": "string"},
-            "body": {"type": "string"}
-        },
-        "additionalProperties": false,
-        "required": ["headline", "body"]
-    }
+    "type": "object",
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "headline": {"type": "string"},
+                    "body": {"type": "string"}
+                },
+                "additionalProperties": false,
+                "required": ["headline", "body"]
+            }
+        }
+    },
+    "additionalProperties": false,
+    "required": ["data"]
+}
+```
+
+And the corresponding Go struct would be:
+```go
+struct {
+    Data []struct {
+        Headline string `json:"headline"`
+        Body     string `json:"body"`
+    } `json:"data"`
 }
 ```
 
 Key requirements:
+- Must have a top-level `data` array field
 - All object schemas must include `"additionalProperties": false`
 - Properties should be explicitly defined
 - Use `"required"` to specify mandatory fields
