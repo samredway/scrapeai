@@ -76,7 +76,35 @@ go run examples/basic_usage.go
 
 ### Advanced Usage
 
-For more advanced usage scenarios, please refer to the documentation in the `docs/` directory.
+#### Custom Schema Construction
+
+While ScrapeAI provide a default schema which returns a list of strings, which will work for many use cases, you can define custom schemas for specific data extraction needs. However, working with custom schemas requires careful attention to OpenAI's JSON Schema requirements and can be tricky to get right. We strongly recommend reviewing the official documentation before implementing custom schemas.
+
+If you do need a custom schema, here's a basic example:
+
+```json
+{
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {
+            "headline": {"type": "string"},
+            "body": {"type": "string"}
+        },
+        "additionalProperties": false,
+        "required": ["headline", "body"]
+    }
+}
+```
+
+Key requirements:
+- All object schemas must include `"additionalProperties": false`
+- Properties should be explicitly defined
+- Use `"required"` to specify mandatory fields
+
+For detailed information about JSON Schema support and requirements, refer to OpenAI's [Function Calling API documentation](https://platform.openai.com/docs/guides/function-calling) and [JSON Schema specification](https://json-schema.org/understanding-json-schema/).
+
+For more detailed examples, check the `examples` directory.
 
 ## Testing
 

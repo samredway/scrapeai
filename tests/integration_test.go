@@ -8,8 +8,9 @@ import (
 	"github.com/samredway/scrapeai/scraping"
 )
 
+const exampleUrl = "https://example.com"
+
 func TestScrapeIntegration(t *testing.T) {
-	url := "https://example.com"
 
 	tests := []struct {
 		name           string
@@ -33,7 +34,7 @@ func TestScrapeIntegration(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			req := scrapeai.NewScrapeAiRequest(url, tt.prompt, scrapeai.WithFetchFunc(scraping.Fetch))
+			req := scrapeai.NewScrapeAiRequest(exampleUrl, tt.prompt, scrapeai.WithFetchFunc(scraping.Fetch))
 			result, err := scrapeai.Scrape(req)
 			if err != nil {
 				t.Fatalf("Error scraping with AI: %v", err)
@@ -51,9 +52,29 @@ func TestScrapeIntegration(t *testing.T) {
 				t.Errorf("Expected result not to contain '%s', but it did. Got: %s", tt.unexpectedPart, result.Results[0])
 			}
 
-			if result.Url != url {
-				t.Errorf("Expected URL to be '%s', but got '%s'", url, result.Url)
+			if result.Url != exampleUrl {
+				t.Errorf("Expected url to be '%s', but got '%s'", exampleUrl, result.Url)
 			}
 		})
 	}
+}
+
+func TestCustomSchema(t *testing.T) {
+	req := scrapeai.NewScrapeAiRequest(
+		exampleUrl,
+		"Extract the headline and the body and return them in the specified data object",
+		scrapeai.WithFetchFunc(scraping.Fetch),
+		scrapeai.WithSchema(`{"type": "object", "headline": {"type": string}, "body": {"type": string}}`),
+	)
+	result, err := scrapeai.Scrape(req)
+	if err != nil {
+		t.Fatalf("Error scraping with AI: %v", err)
+	}
+
+	if len(result.Results) == 0 {
+		t.Fatalf("No results returned")
+	}
+
+	println("Result:", result.Results)
+
 }

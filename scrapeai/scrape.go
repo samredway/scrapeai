@@ -25,6 +25,7 @@ func Scrape(req *ScrapeAiRequest) (*ScrapeAiResult, error) {
 		return nil, fmt.Errorf("fetching page: %w", err)
 	}
 
+	// scrape the page
 	goqueryDoc, err := scraping.GoQueryDocFromBody(page)
 	if err != nil {
 		return nil, fmt.Errorf("creating goquery doc: %w", err)
@@ -38,7 +39,8 @@ func Scrape(req *ScrapeAiRequest) (*ScrapeAiResult, error) {
 		return nil, fmt.Errorf("getting document HTML: %w", err)
 	}
 
-	results, err := processWithGPT(req.Prompt, pageText)
+	// get the results of search from GPT
+	results, err := processWithGPT(req, pageText)
 	if err != nil {
 		return nil, fmt.Errorf("processing with GPT: %w", err)
 	}
@@ -49,13 +51,18 @@ func Scrape(req *ScrapeAiRequest) (*ScrapeAiResult, error) {
 	}, nil
 }
 
-func processWithGPT(prompt, pageText string) ([]string, error) {
-	gptRequest := gpt.NewGptRequest(prompt, pageText)
+func processWithGPT(req *ScrapeAiRequest, pageText string) ([]string, error) {
+	gptRequest := gpt.NewGptRequest(req.Prompt, pageText)
+	if req.Schema != "" {
+		gptRequest.SetSchema(req.Schema)
+	}
+
 	response, err := gpt.SendGptRequest(gptRequest)
 	if err != nil {
 		return nil, err
 	}
-
+    
+	// TODO this needs to match the schema that is passed in
 	var jsonResponse struct {
 		Data []string `json:"data"`
 	}

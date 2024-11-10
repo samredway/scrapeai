@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 )
@@ -39,7 +40,11 @@ func SendGptRequest(config *GptRequest) (*GptResponse, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("API request failed with status code: %d", resp.StatusCode)
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, fmt.Errorf("error with request to GPT API unable to read body of response")
+		}
+		return nil, fmt.Errorf("GPT API request failed with status code: %d and message %s", resp.StatusCode, body)
 	}
 
 	var gptResponse GptResponse
