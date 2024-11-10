@@ -33,11 +33,8 @@ func TestScrapeIntegration(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := scrapeai.Scrape(scrapeai.ScrapeAiRequest{
-				Url:       url,
-				Prompt:    tt.prompt,
-				FetchFunc: scraping.Fetch,
-			})
+			req := scrapeai.NewScrapeAiRequest(url, tt.prompt, scrapeai.WithFetchFunc(scraping.Fetch))
+			result, err := scrapeai.Scrape(req)
 			if err != nil {
 				t.Fatalf("Error scraping with AI: %v", err)
 			}

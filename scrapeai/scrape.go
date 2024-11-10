@@ -1,5 +1,5 @@
 // Package scrapeai provides a public interface for web scraping with AI assistance.
-// Version: v0.1.1
+// Version: v0.1.2
 package scrapeai
 
 import (
@@ -10,20 +10,7 @@ import (
 	"github.com/samredway/scrapeai/scraping"
 )
 
-const Version = "v0.1.1"
-
-// FetchFunc is a function type for fetching a web page
-// See scraping/utils/FetchFromChromedp for the default implementation
-type FetchFunc func(url string) (string, error)
-
-// ScrapeAiRequest represents the input for a scraping operation.
-type ScrapeAiRequest struct {
-	Url    string
-	Prompt string
-	// TODO: maybe make these use the functional options pattern
-	FetchFunc FetchFunc // Optional custom fetch function
-	// Schema    *gpt.SchemaObject // Optional custom schema for the response
-}
+const Version = "v0.1.2"
 
 // ScrapeAiResult contains the results of a scraping operation.
 type ScrapeAiResult struct {
@@ -32,13 +19,8 @@ type ScrapeAiResult struct {
 }
 
 // Scrape performs a web scraping operation with AI assistance.
-func Scrape(req ScrapeAiRequest) (*ScrapeAiResult, error) {
-	fetchFunc := req.FetchFunc
-	if fetchFunc == nil {
-		fetchFunc = scraping.FetchFromChromedp // Default fetch function
-	}
-
-	page, err := fetchFunc(req.Url)
+func Scrape(req *ScrapeAiRequest) (*ScrapeAiResult, error) {
+	page, err := req.FetchFunc(req.Url)
 	if err != nil {
 		return nil, fmt.Errorf("fetching page: %w", err)
 	}

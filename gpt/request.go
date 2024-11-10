@@ -29,7 +29,7 @@ type JsonSchema struct {
 	Schema *SchemaObject `json:"schema"`
 }
 
-var defaultConfig = GptRequest{
+var defaultRequest = GptRequest{
 	Model:       "gpt-4o-mini",
 	Temperature: 0.0,
 	Seed:        42,
@@ -45,9 +45,9 @@ var defaultConfig = GptRequest{
 
 // NewGptRequest creates a new GPT request with the given prompt and page
 func NewGptRequest(prompt, page string) *GptRequest {
-	config := defaultConfig
-	config.Messages = []GptMessage{{Role: "user", Content: fmt.Sprintf(prompt, prompt, page)}}
-	return &config
+	request := defaultRequest
+	request.Messages = []GptMessage{{Role: "user", Content: fmt.Sprintf(prompt, prompt, page)}}
+	return &request
 }
 
 // SetSchema sets the schema for the response from GPT
