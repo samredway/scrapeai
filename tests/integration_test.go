@@ -103,3 +103,13 @@ func TestScrapeCustomSchema(t *testing.T) {
 		t.Fatalf("Error unmarshalling JSON response: %v", err)
 	}
 }
+
+func TestScrapeErrors(t *testing.T) {
+	t.Run("invalid URL", func(t *testing.T) {
+		req := scrapeai.NewScrapeAiRequest("not-a-url", "Extract headline")
+		_, err := scrapeai.Scrape(req)
+		if err == nil {
+			t.Error("Expected error for invalid URL")
+		}
+	})
+}
