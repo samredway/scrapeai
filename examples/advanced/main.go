@@ -43,7 +43,7 @@ func main() {
 	}
 
 	var content ReturnData
-	err = json.Unmarshal([]byte(result.Results[0]), &content)
+	err = json.Unmarshal([]byte(result.Results.(string)), &content)
 	if err != nil {
 		log.Fatalf("Failed to convert result to ReturnData: %v", err)
 	}
@@ -52,4 +52,4 @@ func main() {
 		content.Headline,
 		content.Body,
 	)
-} 
+}

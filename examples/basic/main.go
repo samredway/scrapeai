@@ -14,13 +14,13 @@ func main() {
 	// Example 1: Static HTML scraping
 	fmt.Println("=== Static HTML Example ===")
 	req := scrapeai.NewScrapeAiRequest(url, "Extract the main headline",
-		scrapeai.WithFetchFunc(scraping.Fetch))  // Using static HTML fetching
+		scrapeai.WithFetchFunc(scraping.Fetch)) // Using static HTML fetching
 
 	result, err := scrapeai.Scrape(req)
 	if err != nil {
 		log.Fatalf("Error scraping with AI: %v", err)
 	}
-	fmt.Printf("Static HTML Result: %+v\n\n", result)
+	fmt.Printf("Static HTML Result: %+v\n\n", result.Results)
 
 	// Example 2: Dynamic HTML scraping
 	fmt.Println("=== Dynamic HTML Example ===")
@@ -31,5 +31,5 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error scraping with AI: %v", err)
 	}
-	fmt.Printf("Dynamic HTML Result: %+v\n\n", result)
-} 
+	fmt.Printf("Dynamic HTML Result: %+v\n\n", result.Results)
+}

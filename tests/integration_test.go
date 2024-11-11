@@ -40,16 +40,30 @@ func TestScrapeDefaultSchema(t *testing.T) {
 				t.Fatalf("Error scraping with AI: %v", err)
 			}
 
-			if len(result.Results) == 0 {
+			data := result.Results.(string)
+
+			t.Logf("Data: %s", data)
+
+			type defaultSchema struct {
+				Data []string `json:"data"`
+			}
+
+			var response defaultSchema
+			err = json.Unmarshal([]byte(data), &response)
+			if err != nil {
+				t.Fatalf("Error unmarshalling JSON response: %v", err)
+			}
+
+			if len(response.Data) == 0 {
 				t.Fatalf("No results returned")
 			}
 
-			if !strings.Contains(result.Results[0], tt.expectedPart) {
-				t.Errorf("Expected result to contain '%s', but it didn't. Got: %s", tt.expectedPart, result.Results[0])
+			if !strings.Contains(response.Data[0], tt.expectedPart) {
+				t.Errorf("Expected result to contain '%s', but it didn't. Got: %s", tt.expectedPart, response.Data[0])
 			}
 
-			if strings.Contains(result.Results[0], tt.unexpectedPart) {
-				t.Errorf("Expected result not to contain '%s', but it did. Got: %s", tt.unexpectedPart, result.Results[0])
+			if strings.Contains(response.Data[0], tt.unexpectedPart) {
+				t.Errorf("Expected result not to contain '%s', but it did. Got: %s", tt.unexpectedPart, response.Data[0])
 			}
 
 			if result.Url != exampleUrl {
@@ -90,15 +104,13 @@ func TestScrapeCustomSchema(t *testing.T) {
 		t.Fatalf("Error scraping with AI: %v", err)
 	}
 
-	if len(result.Results) == 0 {
-		t.Fatalf("No results returned")
-	}
+	data := result.Results.(string)
 
 	// Unmarshal the response to the expected schema will validate the response
 	var jsonResponse struct {
 		Data []map[string]string `json:"data"`
 	}
-	err = json.Unmarshal([]byte(result.Results[0]), &jsonResponse)
+	err = json.Unmarshal([]byte(data), &jsonResponse)
 	if err != nil {
 		t.Fatalf("Error unmarshalling JSON response: %v", err)
 	}

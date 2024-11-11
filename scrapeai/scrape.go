@@ -15,7 +15,7 @@ const Version = "v0.1.2"
 // ScrapeAiResult contains the results of a scraping operation.
 type ScrapeAiResult struct {
 	Url     string
-	Results []string
+	Results any
 }
 
 // Scrape performs a web scraping operation with AI assistance.
@@ -51,7 +51,7 @@ func Scrape(req *ScrapeAiRequest) (*ScrapeAiResult, error) {
 	}, nil
 }
 
-func processWithGPT(req *ScrapeAiRequest, pageText string) ([]string, error) {
+func processWithGPT(req *ScrapeAiRequest, pageText string) (string, error) {
 	gptRequest := gpt.NewGptRequest(req.Prompt, pageText)
 	if req.Schema != "" {
 		gptRequest.SetSchema(req.Schema)
@@ -59,7 +59,7 @@ func processWithGPT(req *ScrapeAiRequest, pageText string) ([]string, error) {
 
 	response, err := gpt.SendGptRequest(gptRequest)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	// Get the raw response content
@@ -68,9 +68,9 @@ func processWithGPT(req *ScrapeAiRequest, pageText string) ([]string, error) {
 	// Unmarshal into a generic structure to validate JSON
 	var rawJSON any
 	if err := json.Unmarshal([]byte(content), &rawJSON); err != nil {
-		return nil, fmt.Errorf("invalid JSON response: %w", err)
+		return "", fmt.Errorf("invalid JSON response: %w", err)
 	}
 
 	// If we get here, the JSON is valid
-	return []string{content}, nil
+	return content, nil
 }

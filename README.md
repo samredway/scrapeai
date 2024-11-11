@@ -4,13 +4,29 @@ ScrapeAI is a Go library that integrates web scraping capabilities with OpenAI's
 
 The aim is to provide a more flexible and robust means of extracting web content than can be achieved with traditional web scraping tools. By leveraging AI, ScrapeAI can handle complex layouts, dynamic content, and context-dependent information more effectively.
 
-I have written this library initially to help me reliably scrape data from my own personal projects, however pulled it out into a standalone library in case it might be useful or interesting to others. I have thoughts (see the Future Work section) on how to take this library further and plan to put a bit more time into it when I have some spare time.
+## Table of Contents
+- [Features](#features)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Usage](#usage)
+  - [Basic Usage](#basic-usage)
+  - [Advanced Usage](#advanced-usage)
+- [Testing](#testing)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Features
 
 - Intelligent web scraping powered by GPT models
 - Flexible content extraction from various web page structures
 - Easy integration with Go projects
+
+## Prerequisites
+
+- Go 1.23 or higher
+- OpenAI API key
+- [Other dependencies if any]
 
 ## Installation
 
@@ -43,6 +59,29 @@ func init() {
 }
 ```
 
+## Quick Start
+
+```go
+package main
+
+import (
+    "fmt"
+    "github.com/samredway/scrapeai"
+)
+
+func main() {
+    url := "https://example.com"
+    req := scrapeai.NewScrapeAiRequest(url, "Extract the main headline")
+    
+    result, err := scrapeai.Scrape(req)
+    if err != nil {
+        fmt.Printf("Error: %v\n", err)
+        return
+    }
+    fmt.Println(result.Results)
+}
+```
+
 ## Usage
 
 ### Basic Usage
@@ -66,7 +105,7 @@ func main() {
         fmt.Printf("Error: %v\n", err)
         return
     }
-    fmt.Println(result)
+    fmt.Println(result.Results)
 }
 ```
 
@@ -88,7 +127,18 @@ go run examples/advanced/main.go
 
 #### Custom Schema Construction
 
-While ScrapeAI provides a default schema which returns an array of strings which will cover many different use cases and you may never need to define your own, however sometimes you will want to have more control over the shape of the return data.
+While ScrapeAI provides a default schema which returns an object with an array of strings which will look like this on return:
+
+```json
+{
+    "data": [
+        "string1",
+        "string2"
+    ]
+}
+```
+
+This format will cover many different use cases and you may never need to define your own, however at some point you may want to have more control over the shape of the return data.
 
 When working with custom schemas, you need to follow OpenAI's JSON Schema requirements:
 
@@ -136,6 +186,10 @@ You would use your go struct to unmarshal the JSON response from the GPT model.
 For detailed information about JSON Schema support and requirements, refer to OpenAI's [Function Calling API documentation](https://platform.openai.com/docs/guides/function-calling) and [JSON Schema specification](https://json-schema.org/understanding-json-schema/).
 
 For more detailed examples, check the `examples` directory.
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## Testing
 
