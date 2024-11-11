@@ -58,8 +58,10 @@ import (
 )
 
 func main() {
-    scraper := scrapeai.NewScraper()
-    result, err := scraper.ExtractContent("https://example.com", "Extract the main heading and first paragraph")
+    url := "https://example.com"
+    req := scrapeai.NewScrapeAiRequest(url, "Extract the main headline")
+    
+    result, err := scrapeai.Scrape(req)
     if err != nil {
         fmt.Printf("Error: %v\n", err)
         return
@@ -68,10 +70,18 @@ func main() {
 }
 ```
 
-For more detailed examples, check the `examples` directory. You can run the basic usage example with:
+For more examples, check the `examples` directory:
+- `examples/basic/` - Shows basic static and dynamic HTML scraping
+- `examples/advanced/` - Demonstrates custom schema usage
+
+You can run the examples with:
 
 ```bash
-go run examples/basic_usage.go
+# Basic static and dynamic scraping
+go run examples/basic/main.go
+
+# Advanced custom schema usage
+go run examples/advanced/main.go
 ```
 
 ### Advanced Usage
@@ -129,24 +139,11 @@ For more detailed examples, check the `examples` directory.
 
 ## Testing
 
-While our test coverage is currently limited, we are actively working on improving it. There are some integration tests in the `tests/` folder. You can run these tests with:
+Tests can be found in the `tests/` directory, and can be run with:
 
 ```bash
 go test ./tests -v
 ```
-
-## Future Work
-
-Current plans for future work include:
-
-- Expanding the test suite
-- Adding more examples
-- Enhancing the Scrape function with more flexibility and configuration options:
-    - Allowing input of either URL or HTML for more user control over scraping and filtering
-    - Configurable GPT model parameters (e.g., temperature) for better output control
-    - Custom prompt input for tailored output
-    - Support for different structured output formats beyond JSON
-- Exploring methods to improve content extraction accuracy and reliability
 
 ## License
 
