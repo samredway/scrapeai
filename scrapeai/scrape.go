@@ -10,7 +10,7 @@ import (
 	"github.com/samredway/scrapeai/scraping"
 )
 
-const Version = "v0.1.2"
+const Version = "v0.1.3"
 
 // ScrapeAiResult contains the results of a scraping operation.
 type ScrapeAiResult struct {

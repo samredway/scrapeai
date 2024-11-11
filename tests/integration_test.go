@@ -75,24 +75,24 @@ func TestScrapeDefaultSchema(t *testing.T) {
 
 func TestScrapeCustomSchema(t *testing.T) {
 	test_schema := `{
-				"type": "object",
-				"properties": {
-					"data": {
-						"type": "array",
-						"items": {
-							"type": "object",
-							"properties": {
-								"headline": {"type": "string"},
-								"body": {"type": "string"}
-							},
-							"additionalProperties": false,
-							"required": ["headline", "body"]
-						}
-					}
-				},
-				"additionalProperties": false,
-				"required": ["data"]
-			}`
+		"type": "object",
+		"properties": {
+			"data": {
+				"type": "array",
+				"items": {
+					"type": "object",
+					"properties": {
+						"headline": {"type": "string"},
+						"body": {"type": "string"}
+					},
+					"additionalProperties": false,
+					"required": ["headline", "body"]
+				}
+			}
+		},
+		"additionalProperties": false,
+		"required": ["data"]
+	}`
 	req := scrapeai.NewScrapeAiRequest(
 		exampleUrl,
 		"Extract the headline and the body and return them in the specified data object",
