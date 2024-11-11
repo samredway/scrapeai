@@ -58,8 +58,10 @@ import (
 )
 
 func main() {
-    scraper := scrapeai.NewScraper()
-    result, err := scraper.ExtractContent("https://example.com", "Extract the main heading and first paragraph")
+    url := "https://example.com"
+    req := scrapeai.NewScrapeAiRequest(url, "Extract the main headline")
+    
+    result, err := scrapeai.Scrape(req)
     if err != nil {
         fmt.Printf("Error: %v\n", err)
         return
@@ -68,36 +70,80 @@ func main() {
 }
 ```
 
-For more detailed examples, check the `examples` directory. You can run the basic usage example with:
+For more examples, check the `examples` directory:
+- `examples/basic/` - Shows basic static and dynamic HTML scraping
+- `examples/advanced/` - Demonstrates custom schema usage
+
+You can run the examples with:
 
 ```bash
-go run examples/basic_usage.go
+# Basic static and dynamic scraping
+go run examples/basic/main.go
+
+# Advanced custom schema usage
+go run examples/advanced/main.go
 ```
 
 ### Advanced Usage
 
-For more advanced usage scenarios, please refer to the documentation in the `docs/` directory.
+#### Custom Schema Construction
+
+While ScrapeAI provides a default schema which returns an array of strings which will cover many different use cases and you may never need to define your own, however sometimes you will want to have more control over the shape of the return data.
+
+When working with custom schemas, you need to follow OpenAI's JSON Schema requirements:
+
+1. The schema must be a valid JSON Schema with `type: "object"` at the root level
+2. All object schemas should include `"additionalProperties": false`
+3. Properties should be explicitly defined
+4. Use `"required"` to specify mandatory fields
+
+Here's a basic example:
+
+```json
+{
+    "type": "object",
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "headline": {"type": "string"},
+                    "body": {"type": "string"}
+                },
+                "additionalProperties": false,
+                "required": ["headline", "body"]
+            }
+        }
+    },
+    "additionalProperties": false,
+    "required": ["data"]
+}
+```
+
+And the corresponding Go struct would be:
+```go
+struct {
+    Data []struct {
+        Headline string `json:"headline"`
+        Body     string `json:"body"`
+    } `json:"data"`
+}
+
+You would use your go struct to unmarshal the JSON response from the GPT model.
+```
+
+For detailed information about JSON Schema support and requirements, refer to OpenAI's [Function Calling API documentation](https://platform.openai.com/docs/guides/function-calling) and [JSON Schema specification](https://json-schema.org/understanding-json-schema/).
+
+For more detailed examples, check the `examples` directory.
 
 ## Testing
 
-While our test coverage is currently limited, we are actively working on improving it. There are some integration tests in the `tests/` folder. You can run these tests with:
+Tests can be found in the `tests/` directory, and can be run with:
 
 ```bash
 go test ./tests -v
 ```
-
-## Future Work
-
-Current plans for future work include:
-
-- Expanding the test suite
-- Adding more examples
-- Enhancing the Scrape function with more flexibility and configuration options:
-    - Allowing input of either URL or HTML for more user control over scraping and filtering
-    - Configurable GPT model parameters (e.g., temperature) for better output control
-    - Custom prompt input for tailored output
-    - Support for different structured output formats beyond JSON
-- Exploring methods to improve content extraction accuracy and reliability
 
 ## License
 

@@ -4,49 +4,16 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 )
 
 const openaiApiUrl = "https://api.openai.com/v1/chat/completions"
 
-var defaultConfig = GptRequest{
-	Model:       "gpt-4o-mini",
-	Temperature: 0.0,
-	Seed:        42,
-	ResponseFormat: ResponseFormat{
-		Type: "json_schema",
-		JSONSchema: JSONSchema{
-			Name:   "scrape_result",
-			Strict: true,
-			Schema: SchemaObject{
-				Type: "object",
-				Properties: SchemaDataProperty{
-					Data: SchemaDataArray{
-						Type: "array",
-						Items: struct {
-							Type string `json:"type"`
-						}{
-							Type: "string",
-						},
-					},
-				},
-				AdditionalProperties: false,
-				Required:             []string{"data"},
-			},
-		},
-	},
-}
-
-func NewGptRequest(prompt, page string) GptRequest {
-	config := defaultConfig
-	config.Messages = []GptMessage{{Role: "user", Content: fmt.Sprintf(prompt, prompt, page)}}
-	return config
-}
-
-// TODO: Return a GPT result object with properly parsed data
+// SendGptRequest sends a GPT request to the OpenAI API and returns a GptResponse
 // TODO: Handle size limits (chunking strategy)
-func SendGPTRequest(config *GptRequest) (*GptResponse, error) {
+func SendGptRequest(config *GptRequest) (*GptResponse, error) {
 	openaiApiKey := os.Getenv("OPENAI_API_KEY")
 	if openaiApiKey == "" {
 		return nil, fmt.Errorf("OPENAI_API_KEY is not set in the environment")
@@ -73,7 +40,11 @@ func SendGPTRequest(config *GptRequest) (*GptResponse, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("API request failed with status code: %d", resp.StatusCode)
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, fmt.Errorf("error with request to GPT API unable to read body of response")
+		}
+		return nil, fmt.Errorf("GPT API request failed with status code: %d and message %s", resp.StatusCode, body)
 	}
 
 	var gptResponse GptResponse

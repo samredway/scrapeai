@@ -1,6 +1,7 @@
-package tests
+package integration_test
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 
@@ -8,9 +9,9 @@ import (
 	"github.com/samredway/scrapeai/scraping"
 )
 
-func TestScrapeIntegration(t *testing.T) {
-	url := "https://example.com"
+const exampleUrl = "https://example.com"
 
+func TestScrapeDefaultSchema(t *testing.T) {
 	tests := []struct {
 		name           string
 		prompt         string
@@ -33,11 +34,8 @@ func TestScrapeIntegration(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := scrapeai.Scrape(scrapeai.ScrapeAiRequest{
-				Url:       url,
-				Prompt:    tt.prompt,
-				FetchFunc: scraping.Fetch,
-			})
+			req := scrapeai.NewScrapeAiRequest(exampleUrl, tt.prompt, scrapeai.WithFetchFunc(scraping.Fetch))
+			result, err := scrapeai.Scrape(req)
 			if err != nil {
 				t.Fatalf("Error scraping with AI: %v", err)
 			}
@@ -54,9 +52,64 @@ func TestScrapeIntegration(t *testing.T) {
 				t.Errorf("Expected result not to contain '%s', but it did. Got: %s", tt.unexpectedPart, result.Results[0])
 			}
 
-			if result.Url != url {
-				t.Errorf("Expected URL to be '%s', but got '%s'", url, result.Url)
+			if result.Url != exampleUrl {
+				t.Errorf("Expected url to be '%s', but got '%s'", exampleUrl, result.Url)
 			}
 		})
 	}
+}
+
+func TestScrapeCustomSchema(t *testing.T) {
+	test_schema := `{
+				"type": "object",
+				"properties": {
+					"data": {
+						"type": "array",
+						"items": {
+							"type": "object",
+							"properties": {
+								"headline": {"type": "string"},
+								"body": {"type": "string"}
+							},
+							"additionalProperties": false,
+							"required": ["headline", "body"]
+						}
+					}
+				},
+				"additionalProperties": false,
+				"required": ["data"]
+			}`
+	req := scrapeai.NewScrapeAiRequest(
+		exampleUrl,
+		"Extract the headline and the body and return them in the specified data object",
+		scrapeai.WithFetchFunc(scraping.Fetch),
+		scrapeai.WithSchema(test_schema),
+	)
+	result, err := scrapeai.Scrape(req)
+	if err != nil {
+		t.Fatalf("Error scraping with AI: %v", err)
+	}
+
+	if len(result.Results) == 0 {
+		t.Fatalf("No results returned")
+	}
+
+	// Unmarshal the response to the expected schema will validate the response
+	var jsonResponse struct {
+		Data []map[string]string `json:"data"`
+	}
+	err = json.Unmarshal([]byte(result.Results[0]), &jsonResponse)
+	if err != nil {
+		t.Fatalf("Error unmarshalling JSON response: %v", err)
+	}
+}
+
+func TestScrapeErrors(t *testing.T) {
+	t.Run("invalid URL", func(t *testing.T) {
+		req := scrapeai.NewScrapeAiRequest("not-a-url", "Extract headline")
+		_, err := scrapeai.Scrape(req)
+		if err == nil {
+			t.Error("Expected error for invalid URL")
+		}
+	})
 }
