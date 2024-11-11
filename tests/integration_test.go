@@ -1,6 +1,7 @@
 package integration_test
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 
@@ -10,8 +11,7 @@ import (
 
 const exampleUrl = "https://example.com"
 
-func TestScrapeIntegration(t *testing.T) {
-
+func TestScrapeDefaultSchema(t *testing.T) {
 	tests := []struct {
 		name           string
 		prompt         string
@@ -59,12 +59,31 @@ func TestScrapeIntegration(t *testing.T) {
 	}
 }
 
-func TestCustomSchema(t *testing.T) {
+func TestScrapeCustomSchema(t *testing.T) {
+	test_schema := `{
+				"type": "object",
+				"properties": {
+					"data": {
+						"type": "array",
+						"items": {
+							"type": "object",
+							"properties": {
+								"headline": {"type": "string"},
+								"body": {"type": "string"}
+							},
+							"additionalProperties": false,
+							"required": ["headline", "body"]
+						}
+					}
+				},
+				"additionalProperties": false,
+				"required": ["data"]
+			}`
 	req := scrapeai.NewScrapeAiRequest(
 		exampleUrl,
 		"Extract the headline and the body and return them in the specified data object",
 		scrapeai.WithFetchFunc(scraping.Fetch),
-		scrapeai.WithSchema(`{"type": "object", "headline": {"type": string}, "body": {"type": string}}`),
+		scrapeai.WithSchema(test_schema),
 	)
 	result, err := scrapeai.Scrape(req)
 	if err != nil {
@@ -75,6 +94,12 @@ func TestCustomSchema(t *testing.T) {
 		t.Fatalf("No results returned")
 	}
 
-	println("Result:", result.Results)
-
+	// Unmarshal the response to the expected schema will validate the response
+	var jsonResponse struct {
+		Data []map[string]string `json:"data"`
+	}
+	err = json.Unmarshal([]byte(result.Results[0]), &jsonResponse)
+	if err != nil {
+		t.Fatalf("Error unmarshalling JSON response: %v", err)
+	}
 }

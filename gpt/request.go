@@ -5,6 +5,18 @@ import (
 	"fmt"
 )
 
+const DefaultSchemaTemplate = `{
+    "type": "object",
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {"type": "string"}
+        }
+    },
+    "additionalProperties": false,
+    "required": ["data"]
+}`
+
 type GptRequest struct {
 	Model          string         `json:"model"`
 	Temperature    float64        `json:"temperature"`
@@ -13,20 +25,20 @@ type GptRequest struct {
 	ResponseFormat ResponseFormat `json:"response_format"`
 }
 
-type GptMessage struct {
-	Role    string `json:"role"`
-	Content string `json:"content"`
-}
-
 type ResponseFormat struct {
 	Type       string     `json:"type"`
 	JSONSchema JsonSchema `json:"json_schema"`
 }
 
+type GptMessage struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
+}
+
 type JsonSchema struct {
-	Name   string        `json:"name"`
-	Strict bool          `json:"strict"`
-	Schema *SchemaObject `json:"schema"`
+	Name   string          `json:"name"`
+	Strict bool            `json:"strict"`
+	Schema json.RawMessage `json:"schema"`
 }
 
 var defaultRequest = GptRequest{
@@ -50,8 +62,12 @@ func NewGptRequest(prompt, page string) *GptRequest {
 	return &request
 }
 
+// DefaultSchema returns the default schema configuration which is a array of strings
+func DefaultSchema() json.RawMessage {
+	return json.RawMessage(DefaultSchemaTemplate)
+}
+
 // SetSchema sets the schema for the response from GPT
 func (r *GptRequest) SetSchema(schema string) {
-	schemaBytes := json.RawMessage(schema)
-	r.ResponseFormat.JSONSchema.Schema = NewSchemaObject(schemaBytes)
+	r.ResponseFormat.JSONSchema.Schema = json.RawMessage(schema)
 }

@@ -1,6 +1,9 @@
 package scrapeai
 
-import "github.com/samredway/scrapeai/scraping"
+import (
+	"github.com/samredway/scrapeai/gpt"
+	"github.com/samredway/scrapeai/scraping"
+)
 
 // FetchFunc is a function type for fetching a web page
 // See scraping/utils/FetchFromChromedp for the default implementation
@@ -35,8 +38,6 @@ func WithSchema(s string) Option {
 	}
 }
 
-const defaultSchema = `{"type": "array", "items": {"type": "string"}}`
-
 // Initialise a new ScrapeAiRequest object with options and sensible
 // defaults
 func NewScrapeAiRequest(url string, prompt string, options ...Option) *ScrapeAiRequest {
@@ -48,7 +49,7 @@ func NewScrapeAiRequest(url string, prompt string, options ...Option) *ScrapeAiR
 		req.FetchFunc = defaultFetchFunc
 	}
 	if req.Schema == "" {
-		req.Schema = defaultSchema
+		req.Schema = gpt.DefaultSchemaTemplate
 	}
 	return req
 }

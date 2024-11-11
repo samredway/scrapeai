@@ -62,15 +62,15 @@ func processWithGPT(req *ScrapeAiRequest, pageText string) ([]string, error) {
 		return nil, err
 	}
 
-	// this will return a slice of the raw response strings that have been returned
-	// the caller will need to unmarshal the response to match the schema that is
-	// passed in
-	var jsonResponse struct {
-		Data []string `json:"data"`
-	}
-	if err := json.Unmarshal([]byte(response.Choices[0].Message.Content), &jsonResponse); err != nil {
-		return nil, fmt.Errorf("unmarshaling JSON response: %w", err)
+	// Get the raw response content
+	content := response.Choices[0].Message.Content
+
+	// Unmarshal into a generic structure to validate JSON
+	var rawJSON any
+	if err := json.Unmarshal([]byte(content), &rawJSON); err != nil {
+		return nil, fmt.Errorf("invalid JSON response: %w", err)
 	}
 
-	return jsonResponse.Data, nil
+	// If we get here, the JSON is valid
+	return []string{content}, nil
 }

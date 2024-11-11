@@ -25,16 +25,23 @@ func TestGpt(t *testing.T) {
 			// Test with a custom schema
 			name: "Custom Schema",
 			schema: `{
-				"type": "array",
-				"items": {
-					"type": "object",
-					"properties": {
-						"headline": {"type": "string"},
-						"body": {"type": "string"}
-					},
-					"additionalProperties": false,
-					"required": ["headline", "body"]
-				}
+				"type": "object",
+				"properties": {
+					"data": {
+						"type": "array",
+						"items": {
+							"type": "object",
+							"properties": {
+								"headline": {"type": "string"},
+								"body": {"type": "string"}
+							},
+							"additionalProperties": false,
+							"required": ["headline", "body"]
+						}
+					}
+				},
+				"additionalProperties": false,
+				"required": ["data"]
 			}`,
 			data: &struct {
 				Data []struct {
@@ -68,8 +75,6 @@ func TestGpt(t *testing.T) {
 			if err != nil {
 				t.Errorf("Error unmarshalling response: %v", err)
 			}
-
-			t.Logf("Response: %+v", response.Choices[0].Message.Content)
 		})
 	}
 }

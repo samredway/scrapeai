@@ -78,9 +78,14 @@ go run examples/basic_usage.go
 
 #### Custom Schema Construction
 
-While ScrapeAI provides a default schema which returns a list of strings, you can define custom schemas for specific data extraction needs. However, working with custom schemas requires careful attention to OpenAI's JSON Schema requirements and can be tricky to get right. We strongly recommend reviewing the official documentation before implementing custom schemas.
+While ScrapeAI provides a default schema which returns an array of strings which will cover many different use cases and you may never need to define your own, however sometimes you will want to have more control over the shape of the return data.
 
-**Important**: All custom schemas must include a top-level `data` array field. This is because ScrapeAI always returns responses in a standardized format where results are contained within a `data` array. Your schema and structs must reflect this structure.
+When working with custom schemas, you need to follow OpenAI's JSON Schema requirements:
+
+1. The schema must be a valid JSON Schema with `type: "object"` at the root level
+2. All object schemas should include `"additionalProperties": false`
+3. Properties should be explicitly defined
+4. Use `"required"` to specify mandatory fields
 
 Here's a basic example:
 
@@ -114,13 +119,9 @@ struct {
         Body     string `json:"body"`
     } `json:"data"`
 }
-```
 
-Key requirements:
-- Must have a top-level `data` array field
-- All object schemas must include `"additionalProperties": false`
-- Properties should be explicitly defined
-- Use `"required"` to specify mandatory fields
+You would use your go struct to unmarshal the JSON response from the GPT model.
+```
 
 For detailed information about JSON Schema support and requirements, refer to OpenAI's [Function Calling API documentation](https://platform.openai.com/docs/guides/function-calling) and [JSON Schema specification](https://json-schema.org/understanding-json-schema/).
 
