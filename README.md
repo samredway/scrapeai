@@ -8,7 +8,6 @@ The aim is to provide a more flexible and robust means of extracting web content
 - [Features](#features)
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
-- [Quick Start](#quick-start)
 - [Usage](#usage)
   - [Basic Usage](#basic-usage)
   - [Advanced Usage](#advanced-usage)
@@ -26,7 +25,6 @@ The aim is to provide a more flexible and robust means of extracting web content
 
 - Go 1.23 or higher
 - OpenAI API key
-- [Other dependencies if any]
 
 ## Installation
 
@@ -56,29 +54,6 @@ func init() {
     if err != nil {
         log.Fatal("Error loading .env file")
     }
-}
-```
-
-## Quick Start
-
-```go
-package main
-
-import (
-    "fmt"
-    "github.com/samredway/scrapeai"
-)
-
-func main() {
-    url := "https://example.com"
-    req := scrapeai.NewScrapeAiRequest(url, "Extract the main headline")
-    
-    result, err := scrapeai.Scrape(req)
-    if err != nil {
-        fmt.Printf("Error: %v\n", err)
-        return
-    }
-    fmt.Println(result.Results)
 }
 ```
 
@@ -179,9 +154,9 @@ struct {
         Body     string `json:"body"`
     } `json:"data"`
 }
+```
 
 You would use your go struct to unmarshal the JSON response from the GPT model.
-```
 
 For detailed information about JSON Schema support and requirements, refer to OpenAI's [Function Calling API documentation](https://platform.openai.com/docs/guides/function-calling) and [JSON Schema specification](https://json-schema.org/understanding-json-schema/).
 
