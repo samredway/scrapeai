@@ -33,11 +33,10 @@ func WithSchema(s string) Option {
 
 // ScrapeAiRequest represents the input for a scraping operation.
 type ScrapeAiRequest struct {
-	Url         string
-	Prompt      string
-	FetchFunc   FetchFunc // Optional custom fetch function
-	Schema      string    // Optional custom schema for the response
-	Temperature float64   // Optional temperature for the GPT model's response
+	Url       string
+	Prompt    string
+	FetchFunc FetchFunc // Optional custom fetch function
+	Schema    string    // Optional custom schema for the response
 }
 
 // Initialise a new ScrapeAiRequest object with options and sensible
