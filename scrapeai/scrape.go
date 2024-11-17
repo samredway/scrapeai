@@ -1,5 +1,5 @@
 // Package scrapeai provides a public interface for web scraping with AI assistance.
-// Version: v0.1.2
+// Version: v0.1.3
 package scrapeai
 
 import (
