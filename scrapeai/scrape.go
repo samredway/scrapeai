@@ -15,7 +15,7 @@ const Version = "v0.1.3"
 // ScrapeAiResult contains the results of a scraping operation.
 type ScrapeAiResult struct {
 	Url     string
-	Results any
+	Results string
 }
 
 // Scrape performs a web scraping operation with AI assistance.
