@@ -40,7 +40,7 @@ func TestScrapeDefaultSchema(t *testing.T) {
 				t.Fatalf("Error scraping with AI: %v", err)
 			}
 
-			data := result.Results.(string)
+			data := result.Results
 
 			t.Logf("Data: %s", data)
 
@@ -104,7 +104,7 @@ func TestScrapeCustomSchema(t *testing.T) {
 		t.Fatalf("Error scraping with AI: %v", err)
 	}
 
-	data := result.Results.(string)
+	data := result.Results
 
 	// Unmarshal the response to the expected schema will validate the response
 	var jsonResponse struct {

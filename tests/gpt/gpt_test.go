@@ -78,3 +78,27 @@ func TestGpt(t *testing.T) {
 		})
 	}
 }
+
+func TestSchemaValidation(t *testing.T) {
+	tests := []struct {
+		name   string
+		schema string
+	}{
+		{
+			name:   "invalid json",
+			schema: `{"invalid-json"}`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			prompt := "Extract headline and body from this page"
+			url := "https://example.com"
+			request := gpt.NewGptRequest(prompt, url)
+			err := request.SetSchema(tt.schema)
+			if err == nil {
+				t.Errorf("Invalid schema did not cause an error!")
+			}
+		})
+	}
+}
