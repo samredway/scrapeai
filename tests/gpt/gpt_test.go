@@ -88,6 +88,48 @@ func TestSchemaValidation(t *testing.T) {
 			name:   "invalid json",
 			schema: `{"invalid-json"}`,
 		},
+		{
+			name: "missing additional properties at top level",
+			schema: `{
+				"type": "object",
+				"properties": {
+					"data": {
+						"type": "array",
+						"items": {
+							"type": "object",
+							"properties": {
+								"headline": {"type": "string"},
+								"body": {"type": "string"}
+							},
+							"additionalProperties": false,
+							"required": ["headline", "body"]
+						}
+					}
+				},
+				"required": ["data"]
+			}`,
+		},
+		{
+			name: "missing additional properties at nested level",
+			schema: `{
+				"type": "object",
+				"properties": {
+					"data": {
+						"type": "array",
+						"items": {
+							"type": "object",
+							"properties": {
+								"headline": {"type": "string"},
+								"body": {"type": "string"}
+							},
+							"required": ["headline", "body"]
+						}
+					}
+				},
+				"additionalProperties": false,
+				"required": ["data"]
+			}`,
+		},
 	}
 
 	for _, tt := range tests {

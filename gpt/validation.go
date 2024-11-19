@@ -14,5 +14,13 @@ func ValidateSchema(schema string) error {
 	if err != nil {
 		return fmt.Errorf("schema is not valid json: %w", err)
 	}
+	// TODO this must be iterative and find all nested obj
+	var outer = obj.(map[string]any)
+	if outer["type"] == "object" {
+		value, exists := outer["additionalProperties"]
+		if !exists || value != false {
+			return fmt.Errorf("An object must contain the additionalProperties field and it must be false")
+		}
+	}
 	return nil
 }
