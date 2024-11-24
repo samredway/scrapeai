@@ -67,12 +67,9 @@ func DefaultSchema() json.RawMessage {
 	return json.RawMessage(DefaultSchemaTemplate)
 }
 
-// SetSchema sets the schema for the response from GPT
-func (r *GptRequest) SetSchema(schema string) error {
-	err := ValidateSchema(schema)
-	if err != nil {
-		return err
-	}
+// SetSchema sets a custom schema for the response from GPT.
+// The schema can be pre-validated using ValidateSchema()
+// before being set to avoid potential runtime errors.
+func (r *GptRequest) SetSchema(schema string) {
 	r.ResponseFormat.JSONSchema.Schema = json.RawMessage(schema)
-	return nil
 }

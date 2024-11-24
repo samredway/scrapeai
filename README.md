@@ -73,7 +73,11 @@ import (
 
 func main() {
     url := "https://example.com"
-    req := scrapeai.NewScrapeAiRequest(url, "Extract the main headline")
+    req, err := scrapeai.NewScrapeAiRequest(url, "Extract the main headline")
+    if err != nil {
+        fmt.Printf("Error: %v\n", err)
+        return
+    }
     
     result, err := scrapeai.Scrape(req)
     if err != nil {

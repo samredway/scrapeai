@@ -34,7 +34,7 @@ func TestScrapeDefaultSchema(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			req := scrapeai.NewScrapeAiRequest(exampleUrl, tt.prompt, scrapeai.WithFetchFunc(scraping.Fetch))
+			req, _ := scrapeai.NewScrapeAiRequest(exampleUrl, tt.prompt, scrapeai.WithFetchFunc(scraping.Fetch))
 			result, err := scrapeai.Scrape(req)
 			if err != nil {
 				t.Fatalf("Error scraping with AI: %v", err)
@@ -93,7 +93,7 @@ func TestScrapeCustomSchema(t *testing.T) {
 		"additionalProperties": false,
 		"required": ["data"]
 	}`
-	req := scrapeai.NewScrapeAiRequest(
+	req, _ := scrapeai.NewScrapeAiRequest(
 		exampleUrl,
 		"Extract the headline and the body and return them in the specified data object",
 		scrapeai.WithFetchFunc(scraping.Fetch),
@@ -118,10 +118,22 @@ func TestScrapeCustomSchema(t *testing.T) {
 
 func TestScrapeErrors(t *testing.T) {
 	t.Run("invalid URL", func(t *testing.T) {
-		req := scrapeai.NewScrapeAiRequest("not-a-url", "Extract headline")
+		req, _ := scrapeai.NewScrapeAiRequest("not-a-url", "Extract headline")
 		_, err := scrapeai.Scrape(req)
 		if err == nil {
 			t.Error("Expected error for invalid URL")
+		}
+	})
+
+	t.Run("invalid schema", func(t *testing.T) {
+		invalidSchema := `{invalid json schema}`
+		_, err := scrapeai.NewScrapeAiRequest(
+			exampleUrl,
+			"Extract headline",
+			scrapeai.WithSchema(invalidSchema),
+		)
+		if err == nil {
+			t.Error("Expected error for invalid schema")
 		}
 	})
 }

@@ -41,7 +41,7 @@ type ScrapeAiRequest struct {
 
 // Initialise a new ScrapeAiRequest object with options and sensible
 // defaults
-func NewScrapeAiRequest(url string, prompt string, options ...Option) *ScrapeAiRequest {
+func NewScrapeAiRequest(url string, prompt string, options ...Option) (*ScrapeAiRequest, error) {
 	req := &ScrapeAiRequest{Url: url, Prompt: prompt}
 	for _, o := range options {
 		o(req)
@@ -49,8 +49,13 @@ func NewScrapeAiRequest(url string, prompt string, options ...Option) *ScrapeAiR
 	if req.FetchFunc == nil {
 		req.FetchFunc = defaultFetchFunc
 	}
-	if req.Schema == "" {
+	if req.Schema != "" {
+		err := gpt.ValidateSchema(req.Schema)
+		if err != nil {
+			return nil, err
+		}
+	} else {
 		req.Schema = gpt.DefaultSchemaTemplate
 	}
-	return req
+	return req, nil
 }

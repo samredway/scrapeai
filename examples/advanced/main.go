@@ -31,11 +31,14 @@ func main() {
 		}
 	`
 
-	req := scrapeai.NewScrapeAiRequest(url,
+	req, err := scrapeai.NewScrapeAiRequest(url,
 		"Extract the headline and body content",
 		scrapeai.WithFetchFunc(scraping.Fetch),
 		scrapeai.WithSchema(schema),
 	)
+	if err != nil {
+		log.Fatalf("Error creating request: %v", err)
+	}
 
 	result, err := scrapeai.Scrape(req)
 	if err != nil {
