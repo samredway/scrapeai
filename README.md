@@ -86,6 +86,9 @@ func main() {
     }
     fmt.Println(result.Results)
 }
+
+// Output:
+// {"data":["Example Domain"]}
 ```
 
 For more examples, check the `examples` directory:
