@@ -14,8 +14,12 @@ import (
 
 // Simple fetch functionality that retrieves data from a given url or returns
 // the relevant err
-func Fetch(url string) (string, error) {
-	resp, err := http.Get(url)
+func Fetch(ctx context.Context, url string) (string, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		return "", err
+	}
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return "", err
 	}
@@ -29,12 +33,12 @@ func Fetch(url string) (string, error) {
 
 // Get body from chromedp headless browswer to collect dynamically rendered
 // content
-func FetchFromChromedp(url string) (string, error) {
-	ctx, cancel := chromedp.NewContext(context.Background())
+func FetchFromChromedp(ctx context.Context, url string) (string, error) {
+	chromedpCtx, cancel := chromedp.NewContext(ctx)
 	defer cancel()
 
 	var body string
-	err := chromedp.Run(ctx,
+	err := chromedp.Run(chromedpCtx,
 		chromedp.Navigate(url),
 		chromedp.Sleep(2*time.Second), // Allow JS content to load
 		chromedp.OuterHTML("html", &body),

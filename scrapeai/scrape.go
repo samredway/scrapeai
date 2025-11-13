@@ -3,6 +3,7 @@
 package scrapeai
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
@@ -19,8 +20,8 @@ type ScrapeAiResult struct {
 }
 
 // Scrape performs a web scraping operation with AI assistance.
-func Scrape(req *ScrapeAiRequest) (*ScrapeAiResult, error) {
-	page, err := req.FetchFunc(req.Url)
+func Scrape(ctx context.Context, req *ScrapeAiRequest) (*ScrapeAiResult, error) {
+	page, err := req.FetchFunc(ctx, req.Url)
 	if err != nil {
 		return nil, fmt.Errorf("fetching page: %w", err)
 	}
