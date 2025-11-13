@@ -27,7 +27,7 @@ func TestScrapeDefaultSchema(t *testing.T) {
 		{
 			name:           "Extract main body",
 			prompt:         "Extract the main body of the page, exclude the main headline",
-			expectedPart:   "This domain is for use in illustrative examples in documents",
+			expectedPart:   "This domain is for use in documentation examples",
 			unexpectedPart: "Example Domain",
 		},
 	}

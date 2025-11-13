@@ -2,7 +2,6 @@ package gpt
 
 import (
 	"encoding/json"
-	"fmt"
 )
 
 const DefaultSchemaTemplate = `{
@@ -58,7 +57,7 @@ var defaultRequest = GptRequest{
 // NewGptRequest creates a new GPT request with the given prompt and page
 func NewGptRequest(prompt, page string) *GptRequest {
 	request := defaultRequest
-	request.Messages = []GptMessage{{Role: "user", Content: fmt.Sprintf(prompt, prompt, page)}}
+	request.Messages = []GptMessage{{Role: "user", Content: prompt + "\n\n" + page}}
 	return &request
 }
 
