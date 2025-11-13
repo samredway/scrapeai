@@ -13,13 +13,14 @@ import (
 )
 
 // Simple fetch functionality that retrieves data from a given url or returns
-// the relevant err
+// the relevant err. Timeouts should be set on the context
 func Fetch(ctx context.Context, url string) (string, error) {
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return "", err
 	}
-	resp, err := http.DefaultClient.Do(req)
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
 		return "", err
 	}
