@@ -34,7 +34,8 @@ func Fetch(ctx context.Context, url string) (string, error) {
 // Get body from chromedp headless browswer to collect dynamically rendered
 // content
 func FetchFromChromedp(ctx context.Context, url string) (string, error) {
-	chromedpCtx, cancel := chromedp.NewContext(ctx)
+	// Suppress chromedp's internal logging by using a no-op logger
+	chromedpCtx, cancel := chromedp.NewContext(ctx, chromedp.WithLogf(func(string, ...any) {}))
 	defer cancel()
 
 	var body string
