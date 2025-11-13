@@ -1,5 +1,5 @@
 // Package scrapeai provides a public interface for web scraping with AI assistance.
-// Version: v0.4.0
+// Version: v0.4.1
 package scrapeai
 
 import (
@@ -11,7 +11,7 @@ import (
 	"github.com/samredway/scrapeai/scraping"
 )
 
-const Version = "v0.4.0"
+const Version = "v0.4.1"
 
 // ScrapeAiResult contains the results of a scraping operation.
 type ScrapeAiResult struct {
@@ -31,10 +31,7 @@ func Scrape(ctx context.Context, req *ScrapeAiRequest) (*ScrapeAiResult, error) 
 	if err != nil {
 		return nil, fmt.Errorf("creating goquery doc: %w", err)
 	}
-	strippedPage, err := scraping.StripNonTextTags(goqueryDoc)
-	if err != nil {
-		return nil, fmt.Errorf("stripping non-text tags: %w", err)
-	}
+	strippedPage := scraping.StripNonTextTags(goqueryDoc)
 	pageText, err := scraping.GetDocumentHTML(strippedPage)
 	if err != nil {
 		return nil, fmt.Errorf("getting document HTML: %w", err)

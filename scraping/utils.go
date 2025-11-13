@@ -36,11 +36,13 @@ func Fetch(ctx context.Context, url string) (string, error) {
 	return string(body), nil
 }
 
-// Get body from chromedp headless browswer to collect dynamically rendered
-// content
+// Get body from chromedp headless browswer to collect dynamically rendered content
 func FetchFromChromedp(ctx context.Context, url string) (string, error) {
 	// Suppress chromedp's internal logging by using a no-op logger
-	chromedpCtx, cancel := chromedp.NewContext(ctx, chromedp.WithLogf(func(string, ...any) {}))
+	chromedpCtx, cancel := chromedp.NewContext(
+		ctx,
+		chromedp.WithLogf(func(string, ...any) {}),
+	)
 	defer cancel()
 
 	var body string
@@ -59,7 +61,6 @@ func FetchFromChromedp(ctx context.Context, url string) (string, error) {
 // The ZYTE_API_KEY environment variable must be set.
 // The proxy endpoint defaults to api.zyte.com:8011 but can be overridden
 // via the ZYTE_PROXY_ENDPOINT environment variable.
-// Based on Zyte's documentation: curl --proxy api.zyte.com:8011 --proxy-user YOUR_ZYTE_API_KEY: https://example.com
 func FetchWithZyteStaticProxy(ctx context.Context, targetURL string) (string, error) {
 	apiKey := os.Getenv("ZYTE_API_KEY")
 	if apiKey == "" {
@@ -87,7 +88,7 @@ func FetchWithZyteStaticProxy(ctx context.Context, targetURL string) (string, er
 	if err != nil {
 		return "", fmt.Errorf("invalid proxy endpoint: %w", err)
 	}
-	
+
 	// Set user info: API key as username, empty password
 	parsedProxy.User = url.UserPassword(apiKey, "")
 	proxyURL := parsedProxy
@@ -113,7 +114,12 @@ func FetchWithZyteStaticProxy(ctx context.Context, targetURL string) (string, er
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return "", fmt.Errorf("proxy request failed with status %d: %s", resp.StatusCode, body)
+		err := fmt.Errorf(
+			"proxy request failed with status %d: %s",
+			resp.StatusCode,
+			body,
+		)
+		return "", err
 	}
 
 	body, err := io.ReadAll(resp.Body)
@@ -134,10 +140,10 @@ func GoQueryDocFromBody(body string) (*goquery.Document, error) {
 	return doc, nil
 }
 
-// StripNonTextTags removes elements that don't contain text from a copy of the given
-// goquery document
+// StripNonTextTags removes elements that don't contain text from a copy of the
+// given goquery document
 // Returns a new document with non-text elements removed
-func StripNonTextTags(doc *goquery.Document) (*goquery.Document, error) {
+func StripNonTextTags(doc *goquery.Document) *goquery.Document {
 	docCopy := goquery.CloneDocument(doc)
 	docCopy.Find("script, style, link, meta").Remove()
 	docCopy.Find("*").Each(func(i int, s *goquery.Selection) {
@@ -145,7 +151,7 @@ func StripNonTextTags(doc *goquery.Document) (*goquery.Document, error) {
 			s.Remove()
 		}
 	})
-	return docCopy, nil
+	return docCopy
 }
 
 // Helper function to get the HTML string from a GoQuery document
