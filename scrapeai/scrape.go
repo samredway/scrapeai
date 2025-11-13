@@ -1,8 +1,9 @@
 // Package scrapeai provides a public interface for web scraping with AI assistance.
-// Version: v0.3.0
+// Version: v0.4.0
 package scrapeai
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
@@ -10,7 +11,7 @@ import (
 	"github.com/samredway/scrapeai/scraping"
 )
 
-const Version = "v0.3.0"
+const Version = "v0.4.0"
 
 // ScrapeAiResult contains the results of a scraping operation.
 type ScrapeAiResult struct {
@@ -19,8 +20,8 @@ type ScrapeAiResult struct {
 }
 
 // Scrape performs a web scraping operation with AI assistance.
-func Scrape(req *ScrapeAiRequest) (*ScrapeAiResult, error) {
-	page, err := req.FetchFunc(req.Url)
+func Scrape(ctx context.Context, req *ScrapeAiRequest) (*ScrapeAiResult, error) {
+	page, err := req.FetchFunc(ctx, req.Url)
 	if err != nil {
 		return nil, fmt.Errorf("fetching page: %w", err)
 	}

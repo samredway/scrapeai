@@ -1,6 +1,8 @@
 package scrapeai
 
 import (
+	"context"
+
 	"github.com/samredway/scrapeai/gpt"
 	"github.com/samredway/scrapeai/scraping"
 )
@@ -10,7 +12,7 @@ type Option func(*ScrapeAiRequest)
 
 // FetchFunc is a function type for fetching a web page
 // See scraping/utils/FetchFromChromedp for the default implementation
-type FetchFunc func(url string) (string, error)
+type FetchFunc func(ctx context.Context, url string) (string, error)
 
 // default fetch function
 var defaultFetchFunc = scraping.FetchFromChromedp

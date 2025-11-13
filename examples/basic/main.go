@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 
@@ -9,6 +10,7 @@ import (
 )
 
 func main() {
+	ctx := context.Background()
 	url := "https://example.com"
 
 	// Example 1: Static HTML scraping
@@ -19,7 +21,7 @@ func main() {
 		log.Fatalf("Error creating request: %v", err)
 	}
 
-	result, err := scrapeai.Scrape(req)
+	result, err := scrapeai.Scrape(ctx, req)
 	if err != nil {
 		log.Fatalf("Error scraping with AI: %v", err)
 	}
@@ -33,7 +35,7 @@ func main() {
 	}
 	// Default chromedp fetch func is used, allowing JS rendering
 
-	result, err = scrapeai.Scrape(dynamicReq)
+	result, err = scrapeai.Scrape(ctx, dynamicReq)
 	if err != nil {
 		log.Fatalf("Error scraping with AI: %v", err)
 	}

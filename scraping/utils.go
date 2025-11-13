@@ -3,8 +3,12 @@ package scraping
 
 import (
 	"context"
+	"crypto/tls"
+	"fmt"
 	"io"
 	"net/http"
+	"net/url"
+	"os"
 	"strings"
 	"time"
 
@@ -13,9 +17,14 @@ import (
 )
 
 // Simple fetch functionality that retrieves data from a given url or returns
-// the relevant err
-func Fetch(url string) (string, error) {
-	resp, err := http.Get(url)
+// the relevant err. Timeouts should be set on the context
+func Fetch(ctx context.Context, url string) (string, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		return "", err
+	}
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
 		return "", err
 	}
@@ -29,12 +38,13 @@ func Fetch(url string) (string, error) {
 
 // Get body from chromedp headless browswer to collect dynamically rendered
 // content
-func FetchFromChromedp(url string) (string, error) {
-	ctx, cancel := chromedp.NewContext(context.Background())
+func FetchFromChromedp(ctx context.Context, url string) (string, error) {
+	// Suppress chromedp's internal logging by using a no-op logger
+	chromedpCtx, cancel := chromedp.NewContext(ctx, chromedp.WithLogf(func(string, ...any) {}))
 	defer cancel()
 
 	var body string
-	err := chromedp.Run(ctx,
+	err := chromedp.Run(chromedpCtx,
 		chromedp.Navigate(url),
 		chromedp.Sleep(2*time.Second), // Allow JS content to load
 		chromedp.OuterHTML("html", &body),
@@ -43,6 +53,75 @@ func FetchFromChromedp(url string) (string, error) {
 		return "", err
 	}
 	return body, nil
+}
+
+// FetchWithZyteStaticProxy fetches a URL using Zyte's static proxy.
+// The ZYTE_API_KEY environment variable must be set.
+// The proxy endpoint defaults to api.zyte.com:8011 but can be overridden
+// via the ZYTE_PROXY_ENDPOINT environment variable.
+// Based on Zyte's documentation: curl --proxy api.zyte.com:8011 --proxy-user YOUR_ZYTE_API_KEY: https://example.com
+func FetchWithZyteStaticProxy(ctx context.Context, targetURL string) (string, error) {
+	apiKey := os.Getenv("ZYTE_API_KEY")
+	if apiKey == "" {
+		return "", fmt.Errorf("ZYTE_API_KEY is not set in the environment")
+	}
+
+	proxyEndpoint := os.Getenv("ZYTE_PROXY_ENDPOINT")
+	if proxyEndpoint == "" {
+		proxyEndpoint = "http://api.zyte.com:8011"
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "GET", targetURL, nil)
+	if err != nil {
+		return "", fmt.Errorf("creating request: %w", err)
+	}
+
+	// Add Zyte-Browser-Html header for rendered HTML (optional but recommended)
+	req.Header.Set("Zyte-Browser-Html", "true")
+	req.Header.Set("Accept-Encoding", "gzip, deflate")
+
+	// Parse proxy endpoint URL and embed API key in the URL for authentication
+	// Format: http://<api_key>:@api.zyte.com:8011
+	// The empty password after the colon matches curl's --proxy-user format
+	parsedProxy, err := url.Parse(proxyEndpoint)
+	if err != nil {
+		return "", fmt.Errorf("invalid proxy endpoint: %w", err)
+	}
+	
+	// Set user info: API key as username, empty password
+	parsedProxy.User = url.UserPassword(apiKey, "")
+	proxyURL := parsedProxy
+
+	// Configure HTTP client to use the proxy
+	// Note: Zyte's proxy performs SSL interception/TLS termination, presenting its own
+	// certificate instead of the target server's certificate. We skip TLS verification
+	// for the target connection since the proxy handles the actual TLS to the target.
+	client := &http.Client{
+		Transport: &http.Transport{
+			Proxy: http.ProxyURL(proxyURL),
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		},
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("requesting through proxy: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return "", fmt.Errorf("proxy request failed with status %d: %s", resp.StatusCode, body)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("reading response body: %w", err)
+	}
+
+	return string(body), nil
 }
 
 // Takes an html body as a string and returns a goquery document
@@ -55,7 +134,8 @@ func GoQueryDocFromBody(body string) (*goquery.Document, error) {
 	return doc, nil
 }
 
-// StripNonTextTags removes elements that don't contain text from a copy of the given goquery document
+// StripNonTextTags removes elements that don't contain text from a copy of the given
+// goquery document
 // Returns a new document with non-text elements removed
 func StripNonTextTags(doc *goquery.Document) (*goquery.Document, error) {
 	docCopy := goquery.CloneDocument(doc)

@@ -1,6 +1,7 @@
 package integration_test
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 	"testing"
@@ -27,15 +28,16 @@ func TestScrapeDefaultSchema(t *testing.T) {
 		{
 			name:           "Extract main body",
 			prompt:         "Extract the main body of the page, exclude the main headline",
-			expectedPart:   "This domain is for use in illustrative examples in documents",
+			expectedPart:   "This domain is for use in documentation examples",
 			unexpectedPart: "Example Domain",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
 			req, _ := scrapeai.NewScrapeAiRequest(exampleUrl, tt.prompt, scrapeai.WithFetchFunc(scraping.Fetch))
-			result, err := scrapeai.Scrape(req)
+			result, err := scrapeai.Scrape(ctx, req)
 			if err != nil {
 				t.Fatalf("Error scraping with AI: %v", err)
 			}
@@ -93,13 +95,14 @@ func TestScrapeCustomSchema(t *testing.T) {
 		"additionalProperties": false,
 		"required": ["data"]
 	}`
+	ctx := context.Background()
 	req, _ := scrapeai.NewScrapeAiRequest(
 		exampleUrl,
 		"Extract the headline and the body and return them in the specified data object",
 		scrapeai.WithFetchFunc(scraping.Fetch),
 		scrapeai.WithSchema(test_schema),
 	)
-	result, err := scrapeai.Scrape(req)
+	result, err := scrapeai.Scrape(ctx, req)
 	if err != nil {
 		t.Fatalf("Error scraping with AI: %v", err)
 	}
@@ -118,8 +121,9 @@ func TestScrapeCustomSchema(t *testing.T) {
 
 func TestScrapeErrors(t *testing.T) {
 	t.Run("invalid URL", func(t *testing.T) {
+		ctx := context.Background()
 		req, _ := scrapeai.NewScrapeAiRequest("not-a-url", "Extract headline")
-		_, err := scrapeai.Scrape(req)
+		_, err := scrapeai.Scrape(ctx, req)
 		if err == nil {
 			t.Error("Expected error for invalid URL")
 		}

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -10,6 +11,7 @@ import (
 )
 
 func main() {
+	ctx := context.Background()
 	url := "https://example.com"
 
 	// Example: Custom Schema
@@ -40,7 +42,7 @@ func main() {
 		log.Fatalf("Error creating request: %v", err)
 	}
 
-	result, err := scrapeai.Scrape(req)
+	result, err := scrapeai.Scrape(ctx, req)
 	if err != nil {
 		log.Fatalf("Error scraping with AI: %v", err)
 	}

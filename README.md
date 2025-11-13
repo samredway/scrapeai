@@ -69,11 +69,13 @@ Here's a simple example of how to use ScrapeAI:
 package main
 
 import (
+    "context"
     "fmt"
     "github.com/samredway/scrapeai"
 )
 
 func main() {
+    ctx := context.Background()
     url := "https://example.com"
     req, err := scrapeai.NewScrapeAiRequest(url, "Extract the main headline")
     if err != nil {
@@ -81,7 +83,7 @@ func main() {
         return
     }
     
-    result, err := scrapeai.Scrape(req)
+    result, err := scrapeai.Scrape(ctx, req)
     if err != nil {
         fmt.Printf("Error: %v\n", err)
         return
