@@ -92,8 +92,10 @@ func FetchWithZyteStaticProxy(ctx context.Context, targetURL string) (string, er
 	parsedProxy.User = url.UserPassword(apiKey, "")
 	proxyURL := parsedProxy
 
-	// Configure HTTP client to use the proxy with TLS configuration
-	// Note: We skip TLS verification for proxy connections as the proxy uses its own certificate
+	// Configure HTTP client to use the proxy
+	// Note: Zyte's proxy performs SSL interception/TLS termination, presenting its own
+	// certificate instead of the target server's certificate. We skip TLS verification
+	// for the target connection since the proxy handles the actual TLS to the target.
 	client := &http.Client{
 		Transport: &http.Transport{
 			Proxy: http.ProxyURL(proxyURL),
