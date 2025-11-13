@@ -61,7 +61,8 @@ func GoQueryDocFromBody(body string) (*goquery.Document, error) {
 	return doc, nil
 }
 
-// StripNonTextTags removes elements that don't contain text from a copy of the given goquery document
+// StripNonTextTags removes elements that don't contain text from a copy of the given
+// goquery document
 // Returns a new document with non-text elements removed
 func StripNonTextTags(doc *goquery.Document) (*goquery.Document, error) {
 	docCopy := goquery.CloneDocument(doc)
