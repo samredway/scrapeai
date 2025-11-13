@@ -3,8 +3,12 @@ package scraping
 
 import (
 	"context"
+	"crypto/tls"
+	"fmt"
 	"io"
 	"net/http"
+	"net/url"
+	"os"
 	"strings"
 	"time"
 
@@ -49,6 +53,73 @@ func FetchFromChromedp(ctx context.Context, url string) (string, error) {
 		return "", err
 	}
 	return body, nil
+}
+
+// FetchWithZyteStaticProxy fetches a URL using Zyte's static proxy.
+// The ZYTE_API_KEY environment variable must be set.
+// The proxy endpoint defaults to api.zyte.com:8011 but can be overridden
+// via the ZYTE_PROXY_ENDPOINT environment variable.
+// Based on Zyte's documentation: curl --proxy api.zyte.com:8011 --proxy-user YOUR_ZYTE_API_KEY: https://example.com
+func FetchWithZyteStaticProxy(ctx context.Context, targetURL string) (string, error) {
+	apiKey := os.Getenv("ZYTE_API_KEY")
+	if apiKey == "" {
+		return "", fmt.Errorf("ZYTE_API_KEY is not set in the environment")
+	}
+
+	proxyEndpoint := os.Getenv("ZYTE_PROXY_ENDPOINT")
+	if proxyEndpoint == "" {
+		proxyEndpoint = "http://api.zyte.com:8011"
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "GET", targetURL, nil)
+	if err != nil {
+		return "", fmt.Errorf("creating request: %w", err)
+	}
+
+	// Add Zyte-Browser-Html header for rendered HTML (optional but recommended)
+	req.Header.Set("Zyte-Browser-Html", "true")
+	req.Header.Set("Accept-Encoding", "gzip, deflate")
+
+	// Parse proxy endpoint URL and embed API key in the URL for authentication
+	// Format: http://<api_key>:@api.zyte.com:8011
+	// The empty password after the colon matches curl's --proxy-user format
+	parsedProxy, err := url.Parse(proxyEndpoint)
+	if err != nil {
+		return "", fmt.Errorf("invalid proxy endpoint: %w", err)
+	}
+	
+	// Set user info: API key as username, empty password
+	parsedProxy.User = url.UserPassword(apiKey, "")
+	proxyURL := parsedProxy
+
+	// Configure HTTP client to use the proxy with TLS configuration
+	// Note: We skip TLS verification for proxy connections as the proxy uses its own certificate
+	client := &http.Client{
+		Transport: &http.Transport{
+			Proxy: http.ProxyURL(proxyURL),
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		},
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("requesting through proxy: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return "", fmt.Errorf("proxy request failed with status %d: %s", resp.StatusCode, body)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("reading response body: %w", err)
+	}
+
+	return string(body), nil
 }
 
 // Takes an html body as a string and returns a goquery document
