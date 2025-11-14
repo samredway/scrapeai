@@ -65,6 +65,48 @@ func FetchFromChromedp(ctx context.Context, url string) (string, error) {
 	return body, nil
 }
 
+// FetchWithZyteProxy fetches a URL using Zyte's proxy without html rendering
+// The ZYTE_API_KEY environment variable must be set.
+func FetchWithZyteProxy(ctx context.Context, targetURL string) (string, error) {
+	apiKey := os.Getenv("ZYTE_API_KEY")
+	if apiKey == "" {
+		return "", fmt.Errorf("ZYTE_API_KEY is not set in the environment")
+	}
+
+	req, _ := http.NewRequestWithContext(ctx, "GET", targetURL, nil)
+
+	proxyURL := "http://" + apiKey + ":@api.zyte.com:8011"
+	proxy, _ := url.Parse(proxyURL)
+	client := &http.Client{
+		Transport: &http.Transport{
+			Proxy: http.ProxyURL(proxy),
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		},
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("creating request: %w", err)
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(resp.Body)
+
+	if resp.StatusCode != http.StatusOK {
+		err := fmt.Errorf(
+			"proxy request failed with status %d: %s",
+			resp.StatusCode,
+			body,
+		)
+		return "", err
+	}
+
+	return string(body), nil
+}
+
+const ZyteExtractUrl string = "https://api.zyte.com/v1/extract"
+
 type ZyteReqeust struct {
 	Url         string `json:"url"`
 	BrowserHTML bool   `json:"browserHtml"`
@@ -72,56 +114,30 @@ type ZyteReqeust struct {
 
 // FetchWithZyteProxy fetches a URL using Zyte's proxy with html rendering
 // The ZYTE_API_KEY environment variable must be set.
-// The proxy endpoint defaults to api.zyte.com:8011 but can be overridden
-// via the ZYTE_PROXY_ENDPOINT environment variable.
-func FetchWithZyteProxy(ctx context.Context, targetURL string) (string, error) {
+func FetchWithZyteProxyHTML(ctx context.Context, targetURL string) (string, error) {
 	apiKey := os.Getenv("ZYTE_API_KEY")
 	if apiKey == "" {
 		return "", fmt.Errorf("ZYTE_API_KEY is not set in the environment")
 	}
 
-	proxyEndpoint := os.Getenv("ZYTE_PROXY_ENDPOINT")
-	if proxyEndpoint == "" {
-		proxyEndpoint = "http://api.zyte.com:8011"
-	}
-
 	zReq := ZyteReqeust{Url: targetURL, BrowserHTML: true}
 	jsonData, _ := json.Marshal(zReq)
+
 	req, err := http.NewRequestWithContext(
 		ctx,
 		"POST",
-		targetURL,
+		ZyteExtractUrl,
 		bytes.NewReader(jsonData),
 	)
+
+	req.Header.Set("Content-Type", "application/json")
+	req.SetBasicAuth(apiKey, "")
 
 	if err != nil {
 		return "", fmt.Errorf("creating request: %w", err)
 	}
 
-	// Parse proxy endpoint URL and embed API key in the URL for authentication
-	// Format: http://<api_key>:@api.zyte.com:8011
-	// The empty password after the colon matches curl's --proxy-user format
-	parsedProxy, err := url.Parse(proxyEndpoint)
-	if err != nil {
-		return "", fmt.Errorf("invalid proxy endpoint: %w", err)
-	}
-
-	// Set user info: API key as username, empty password
-	parsedProxy.User = url.UserPassword(apiKey, "")
-	proxyURL := parsedProxy
-
-	// Configure HTTP client to use the proxy
-	// Note: Zyte's proxy performs SSL interception/TLS termination, presenting its own
-	// certificate instead of the target server's certificate. We skip TLS verification
-	// for the target connection since the proxy handles the actual TLS to the target.
-	client := &http.Client{
-		Transport: &http.Transport{
-			Proxy: http.ProxyURL(proxyURL),
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true,
-			},
-		},
-	}
+	client := http.Client{}
 
 	resp, err := client.Do(req)
 	if err != nil {
