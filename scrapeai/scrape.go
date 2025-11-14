@@ -1,5 +1,5 @@
 // Package scrapeai provides a public interface for web scraping with AI assistance.
-// Version: v0.4.1
+// Version: v0.4.2
 package scrapeai
 
 import (
@@ -11,7 +11,7 @@ import (
 	"github.com/samredway/scrapeai/scraping"
 )
 
-const Version = "v0.4.1"
+const Version = "v0.4.2"
 
 // ScrapeAiResult contains the results of a scraping operation.
 type ScrapeAiResult struct {
