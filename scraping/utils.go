@@ -1,9 +1,17 @@
-// Package scraping contains utility functions for web scraping
+// Package scraping contains utility functions for web scraping.
+
+// NOTE: the FetchFuncs here can be used directly as FetchFunc for the scrapai.Scrape
+// interface in a lot of simple cases. But for more complex instances where you want
+// granular control of headers, client timeouts etc you will probalby need to write
+// your own FectchFunc. In those cases these can be seen as useful examples.
+
 package scraping
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -57,11 +65,16 @@ func FetchFromChromedp(ctx context.Context, url string) (string, error) {
 	return body, nil
 }
 
-// FetchWithZyteStaticProxy fetches a URL using Zyte's static proxy.
+type ZyteReqeust struct {
+	Url         string `json:"url"`
+	BrowserHTML bool   `json:"browserHtml"`
+}
+
+// FetchWithZyteProxy fetches a URL using Zyte's proxy with html rendering
 // The ZYTE_API_KEY environment variable must be set.
 // The proxy endpoint defaults to api.zyte.com:8011 but can be overridden
 // via the ZYTE_PROXY_ENDPOINT environment variable.
-func FetchWithZyteStaticProxy(ctx context.Context, targetURL string) (string, error) {
+func FetchWithZyteProxy(ctx context.Context, targetURL string) (string, error) {
 	apiKey := os.Getenv("ZYTE_API_KEY")
 	if apiKey == "" {
 		return "", fmt.Errorf("ZYTE_API_KEY is not set in the environment")
@@ -72,14 +85,18 @@ func FetchWithZyteStaticProxy(ctx context.Context, targetURL string) (string, er
 		proxyEndpoint = "http://api.zyte.com:8011"
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "GET", targetURL, nil)
+	zReq := ZyteReqeust{Url: targetURL, BrowserHTML: true}
+	jsonData, _ := json.Marshal(zReq)
+	req, err := http.NewRequestWithContext(
+		ctx,
+		"POST",
+		targetURL,
+		bytes.NewReader(jsonData),
+	)
+
 	if err != nil {
 		return "", fmt.Errorf("creating request: %w", err)
 	}
-
-	// Add Zyte-Browser-Html header for rendered HTML (optional but recommended)
-	req.Header.Set("Zyte-Browser-Html", "true")
-	req.Header.Set("Accept-Encoding", "gzip, deflate")
 
 	// Parse proxy endpoint URL and embed API key in the URL for authentication
 	// Format: http://<api_key>:@api.zyte.com:8011
