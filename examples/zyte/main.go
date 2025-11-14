@@ -39,7 +39,7 @@ func main() {
 	fmt.Println()
 
 	req, err := scrapeai.NewScrapeAiRequest(url, "Extract the main headline",
-		scrapeai.WithFetchFunc(scraping.FetchWithZyteStaticProxy))
+		scrapeai.WithFetchFunc(scraping.FetchWithZyteProxy))
 	if err != nil {
 		log.Fatalf("Error creating request: %v", err)
 	}
