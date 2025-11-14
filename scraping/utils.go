@@ -65,7 +65,7 @@ func FetchFromChromedp(ctx context.Context, url string) (string, error) {
 	return body, nil
 }
 
-// FetchWithZyteProxy fetches a URL using Zyte's proxy without html rendering
+// FetchWithZyteProxy fetches a URL using Zyte's proxy.
 // The ZYTE_API_KEY environment variable must be set.
 func FetchWithZyteProxy(ctx context.Context, targetURL string) (string, error) {
 	apiKey := os.Getenv("ZYTE_API_KEY")
@@ -73,13 +73,30 @@ func FetchWithZyteProxy(ctx context.Context, targetURL string) (string, error) {
 		return "", fmt.Errorf("ZYTE_API_KEY is not set in the environment")
 	}
 
-	req, _ := http.NewRequestWithContext(ctx, "GET", targetURL, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", targetURL, nil)
+	if err != nil {
+		return "", fmt.Errorf("creating request: %w", err)
+	}
 
-	proxyURL := "http://" + apiKey + ":@api.zyte.com:8011"
-	proxy, _ := url.Parse(proxyURL)
+	// Parse proxy endpoint URL and embed API key in the URL for authentication
+	// Format: http://<api_key>:@api.zyte.com:8011
+	// The empty password after the colon matches curl's --proxy-user format
+	parsedProxy, err := url.Parse("http://api.zyte.com:8011")
+	if err != nil {
+		return "", fmt.Errorf("invalid proxy endpoint: %w", err)
+	}
+
+	// Set user info: API key as username, empty password
+	parsedProxy.User = url.UserPassword(apiKey, "")
+	proxyURL := parsedProxy
+
+	// Configure HTTP client to use the proxy
+	// Note: Zyte's proxy performs SSL interception/TLS termination, presenting its own
+	// certificate instead of the target server's certificate. We skip TLS verification
+	// for the target connection since the proxy handles the actual TLS to the target.
 	client := &http.Client{
 		Transport: &http.Transport{
-			Proxy: http.ProxyURL(proxy),
+			Proxy: http.ProxyURL(proxyURL),
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: true,
 			},
@@ -88,18 +105,23 @@ func FetchWithZyteProxy(ctx context.Context, targetURL string) (string, error) {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("creating request: %w", err)
+		return "", fmt.Errorf("requesting through proxy: %w", err)
 	}
 	defer resp.Body.Close()
-	body, _ := io.ReadAll(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
 		err := fmt.Errorf(
 			"proxy request failed with status %d: %s",
 			resp.StatusCode,
 			body,
 		)
 		return "", err
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("reading response body: %w", err)
 	}
 
 	return string(body), nil
